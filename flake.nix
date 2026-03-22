@@ -9,7 +9,7 @@
 
   outputs = { self, nixpkgs, home-manager, nixgl, ... }:
     let
-      system = "x86_64-linux";a
+      system = "x86_64-linux";
       overlays = [
         nixgl.overlay
       ];
