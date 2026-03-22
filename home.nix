@@ -15,6 +15,6 @@
   programs.git.enable = true;
 
   imports = [
-    (import ./modules { inherit config lib pkgs env; })
+    (import ./modules { inherit config lib pkgs; })
   ];
 }
