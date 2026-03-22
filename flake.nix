@@ -4,16 +4,25 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     home-manager.url = "github:nix-community/home-manager";
+    nixgl.url = "github:guibou/nixGL";
   };
 
-  outputs = { self, nixpkgs, home-manager, ... }:
+  outputs = { self, nixpkgs, home-manager, nixgl, ... }:
     let
-      system = "x86_64-linux";
-      pkgs = import nixpkgs { inherit system; };
+      system = "x86_64-linux";a
+      overlays = [
+        nixgl.overlay
+      ];
+      pkgs = import nixpkgs { inherit system overlays; };
     in {
       homeConfigurations.ghoul = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
         modules = [ ./home.nix ];
+	# Optionally use extraSpecialArgs
+        # to pass through arguments to home.nix
+        extraSpecialArgs = {
+          inherit nixgl username;
+        };
       };
 
       defaultApp.x86_64-linux = {
