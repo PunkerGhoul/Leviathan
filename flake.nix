@@ -18,8 +18,6 @@
       homeConfigurations.ghoul = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
         modules = [ ./home.nix ];
-	# Optionally use extraSpecialArgs
-        # to pass through arguments to home.nix
         extraSpecialArgs = {
           inherit nixgl;
         };
@@ -28,6 +26,11 @@
       defaultApp.x86_64-linux = {
         type = "app";
         program = "${self.homeConfigurations.ghoul.activationPackage}/activate";
+        env = {
+          LD_LIBRARY_PATH = "${nixgl}/lib:${pkgs.stdenv.cc.cc.lib}/lib";
+          LIBGL_DRIVERS_PATH = "${nixgl}/lib/dri";
+          VK_ICD_FILENAMES = "${nixgl}/share/vulkan/icd.d/nvidia_icd.json";
+        };
       };
     };
 }
