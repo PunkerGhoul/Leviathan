@@ -1,21 +1,21 @@
 { config, pkgs, ... }:
 
 let
-  # Paquete nixGL
-  nixglPkg = config.lib.nixGL.packages.${builtins.currentSystem}.nixgl;
-
-  # Derivado de Hyprland con XWayland habilitado
+  # Paquete Hyprland original con XWayland habilitado
   hyprlandBase = pkgs.hyprland.override {
     enableXWayland = true;
   };
 
-  # Wrapper de Hyprland con nixGL
+  # Paquete nixGL para wrap
+  nixglPkg = config.lib.nixGL.packages.${builtins.currentSystem}.nixgl;
+
+  # Wrapper de Hyprland con nixGL (solo para launch)
   hyprlandWrapper = pkgs.stdenv.mkDerivation {
-    pname = "hyprland-nixgl-wrapper";
+    pname = "hyprland-nixgl";
     version = "0.1";
 
     nativeBuildInputs = [ pkgs.makeWrapper ];
-    buildInputs = [ nixglPkg hyprlandBase ];
+    buildInputs = [ hyprlandBase nixglPkg pkgs.kitty pkgs.xwayland pkgs.libinput ];
 
     installPhase = ''
       mkdir -p $out/bin
@@ -29,7 +29,7 @@ let
   };
 in
 {
-  # Cursor theme global
+  # Cursor global
   home.pointerCursor = {
     name = "Adwaita";
     package = pkgs.adwaita-icon-theme;
@@ -43,15 +43,15 @@ in
     XCURSOR_SIZE = "24";
   };
 
-  # Hyprland Wayland window manager
+  # Hyprland para Home Manager
   wayland.windowManager.hyprland = {
     enable = true;
 
-    # Package es ahora un derivado completo
-    package = hyprlandWrapper;
+    # PASAMOS el derivado original a HM
+    package = hyprlandBase;
     portalPackage = pkgs.xdg-desktop-portal-hyprland;
 
-    # Tu configuración Hyprland completa
+    # Configuración Hyprland completa
     settings = {
       monitor = ",1920x1080@60,auto,auto";
       "$terminal" = "kitty";
@@ -179,4 +179,7 @@ in
     extraConfig = builtins.readFile ./hyprland.conf;
     systemd.enableXdgAutostart = true;
   };
+
+  # Export alias para ejecutar el wrapper con nixGL manualmente
+  home.sessionVariables.HYPRLAND_NIXGL = "${hyprlandWrapper}/bin/hyprland-nixgl";
 }
