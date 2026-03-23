@@ -16,8 +16,10 @@
     {
       homeConfigurations.ghoul = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
-        modules = [ ./home.nix ];
-        extraSpecialArgs = { inherit nixgl; };
+        modules = [ ./home.nix ./modules/wayland/hyprland/default.nix ];
+        extraSpecialArgs = {
+          inherit nixgl system;
+        };
       };
 
       defaultApp.x86_64-linux = {
