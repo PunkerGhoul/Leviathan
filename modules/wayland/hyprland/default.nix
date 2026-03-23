@@ -1,7 +1,10 @@
 { config, pkgs, ... }:
 
 let
+  # Paquete nixGL
   nixglPkg = config.lib.nixGL.packages.${builtins.currentSystem}.nixgl;
+
+  # Wrapper de Hyprland con nixGL, ahora es un derivado completo
   hyprlandWrapper = pkgs.stdenv.mkDerivation {
     pname = "hyprland-nixgl-wrapper";
     version = "0.1";
@@ -21,7 +24,7 @@ let
   };
 in
 {
-  # Configure cursor theme globally
+  # Cursor theme global
   home.pointerCursor = {
     name = "Adwaita";
     package = pkgs.adwaita-icon-theme;
@@ -30,7 +33,6 @@ in
     x11.enable = true;
   };
 
-  # Ensure cursor is set via environment variables
   home.sessionVariables = {
     XCURSOR_THEME = "Adwaita";
     XCURSOR_SIZE = "24";
@@ -40,8 +42,8 @@ in
   wayland.windowManager.hyprland = {
     enable = true;
 
-    # Usamos el wrapper modular con nixGL
-    package = hyprlandWrapper/bin/hyprland-nixgl;
+    # Ahora package es un derivado completo, compatible con HM
+    package = hyprlandWrapper;
     portalPackage = pkgs.xdg-desktop-portal-hyprland;
 
     settings = {
