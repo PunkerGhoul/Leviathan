@@ -4,17 +4,22 @@ let
   # Paquete nixGL
   nixglPkg = config.lib.nixGL.packages.${builtins.currentSystem}.nixgl;
 
-  # Wrapper de Hyprland con nixGL, ahora es un derivado completo
+  # Derivado de Hyprland con XWayland habilitado
+  hyprlandBase = pkgs.hyprland.override {
+    enableXWayland = true;
+  };
+
+  # Wrapper de Hyprland con nixGL
   hyprlandWrapper = pkgs.stdenv.mkDerivation {
     pname = "hyprland-nixgl-wrapper";
     version = "0.1";
 
     nativeBuildInputs = [ pkgs.makeWrapper ];
-    buildInputs = [ nixglPkg pkgs.hyprland ];
+    buildInputs = [ nixglPkg hyprlandBase ];
 
     installPhase = ''
       mkdir -p $out/bin
-      wrapProgram ${pkgs.hyprland}/bin/hyprland \
+      wrapProgram ${hyprlandBase}/bin/hyprland \
         --prefix LD_LIBRARY_PATH : ${nixglPkg}/lib \
         --prefix LIBGL_DRIVERS_PATH : ${nixglPkg}/lib/dri \
         --prefix VK_ICD_FILENAMES : ${nixglPkg}/share/vulkan/icd.d/nvidia_icd.json \
@@ -42,20 +47,17 @@ in
   wayland.windowManager.hyprland = {
     enable = true;
 
-    # Ahora package es un derivado completo, compatible con HM
+    # Package es ahora un derivado completo
     package = hyprlandWrapper;
     portalPackage = pkgs.xdg-desktop-portal-hyprland;
 
+    # Tu configuración Hyprland completa
     settings = {
-      ## Monitors
       monitor = ",1920x1080@60,auto,auto";
-
-      ## Programs
       "$terminal" = "kitty";
       "$filemanager" = "dolphin";
       "$menu" = "rofi -show drun";
 
-      ## Look & Feel
       general = {
         gaps_in = 8;
         gaps_out = 15;
