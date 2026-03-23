@@ -14,12 +14,6 @@
   programs.zsh.enable = true;
   programs.git.enable = true;
 
-  # `start-hyprland` checks for a `nixGL` executable on non-NixOS systems.
-  # Installing it in the Home Manager profile satisfies that check.
-  home.packages = [
-    pkgs.nixgl.auto.nixGLDefault
-  ];
-
   imports = [
     (import ./modules { inherit config lib pkgs; })
   ];

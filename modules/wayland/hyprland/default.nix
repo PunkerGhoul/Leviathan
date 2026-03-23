@@ -1,30 +1,8 @@
-{ config, pkgs, nixgl ? null, system ? builtins.currentSystem, ... }:
+{ config, pkgs, ... }:
 
 let
   # Hyprland con XWayland habilitado
   hyprlandBase = pkgs.hyprland.override { enableXWayland = true; };
-
-  # Wrapper nixGL solo si nixgl está disponible
-  hyprlandWrapper = if nixgl != null then
-    let
-      nixglPkg = pkgs.nixgl.auto.nixGLDefault;
-    in pkgs.stdenv.mkDerivation {
-      pname = "hyprland-nixgl";
-      version = "0.1";
-      nativeBuildInputs = [ pkgs.makeWrapper ];
-      buildInputs = [ hyprlandBase nixglPkg pkgs.kitty pkgs.xwayland pkgs.libinput ];
-
-      installPhase = ''
-        mkdir -p $out/bin
-        wrapProgram ${hyprlandBase}/bin/hyprland \
-          --prefix LD_LIBRARY_PATH : ${nixglPkg}/lib \
-          --prefix LIBGL_DRIVERS_PATH : ${nixglPkg}/lib/dri \
-          --prefix VK_ICD_FILENAMES : ${nixglPkg}/share/vulkan/icd.d/nvidia_icd.json \
-          --set PATH "${pkgs.kitty}/bin:${pkgs.xwayland}/bin:${pkgs.libinput}/bin:$PATH" \
-          --out $out/bin/hyprland-nixgl
-      '';
-    }
-  else null;
 in
 {
   # Cursor global
@@ -39,14 +17,12 @@ in
   home.sessionVariables = {
     XCURSOR_THEME = "Adwaita";
     XCURSOR_SIZE = "24";
-    # Alias para ejecutar Hyprland con nixGL
-    HYPRLAND_NIXGL = if hyprlandWrapper != null then "${hyprlandWrapper}/bin/hyprland-nixgl" else "";
   };
 
   # Hyprland para Home Manager
   wayland.windowManager.hyprland = {
     enable = true;
-    #package = hyprlandBase;
+    package = hyprlandBase;
     #portalPackage = pkgs.xdg-desktop-portal-hyprland;
 
     settings = {
