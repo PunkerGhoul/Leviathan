@@ -7,7 +7,7 @@ let
   # Wrapper nixGL solo si nixgl está disponible
   hyprlandWrapper = if nixgl != null then
     let
-      nixglPkg = nixgl.packages.${system}.nixgl;
+      nixglPkg = pkgs.nixgl.auto.nixGLDefault;
     in pkgs.stdenv.mkDerivation {
       pname = "hyprland-nixgl";
       version = "0.1";
