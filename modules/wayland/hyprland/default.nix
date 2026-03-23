@@ -46,7 +46,7 @@ in
   # Hyprland para Home Manager
   wayland.windowManager.hyprland = {
     enable = true;
-    package = hyprlandBase;
+    #package = hyprlandBase;
     #portalPackage = pkgs.xdg-desktop-portal-hyprland;
 
     settings = {
