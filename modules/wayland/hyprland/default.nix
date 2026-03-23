@@ -1,15 +1,27 @@
 { config, pkgs, ... }:
 
 let
-  nixglPkg = config.lib.nixGL.packages.${pkgs.stdenv.hostPlatform.system}.nixgl;
-  hyprlandWrapper = import ./hyprland/default.nix {
-    inherit pkgs nixglPkg;
-    hyprlandPkg = pkgs.hyprland;
-    extraPath = "";
+  nixglPkg = config.lib.nixGL.packages.${builtins.currentSystem}.nixgl;
+  hyprlandWrapper = pkgs.stdenv.mkDerivation {
+    pname = "hyprland-nixgl-wrapper";
+    version = "0.1";
+
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    buildInputs = [ nixglPkg pkgs.hyprland ];
+
+    installPhase = ''
+      mkdir -p $out/bin
+      wrapProgram ${pkgs.hyprland}/bin/hyprland \
+        --prefix LD_LIBRARY_PATH : ${nixglPkg}/lib \
+        --prefix LIBGL_DRIVERS_PATH : ${nixglPkg}/lib/dri \
+        --prefix VK_ICD_FILENAMES : ${nixglPkg}/share/vulkan/icd.d/nvidia_icd.json \
+        --set PATH "${pkgs.kitty}/bin:${pkgs.xwayland}/bin:${pkgs.libinput}/bin:$PATH" \
+        --out $out/bin/hyprland-nixgl
+    '';
   };
 in
 {
-  # Cursor global
+  # Configure cursor theme globally
   home.pointerCursor = {
     name = "Adwaita";
     package = pkgs.adwaita-icon-theme;
@@ -18,25 +30,25 @@ in
     x11.enable = true;
   };
 
-  # Variables de entorno de sesión (solo cursor)
+  # Ensure cursor is set via environment variables
   home.sessionVariables = {
     XCURSOR_THEME = "Adwaita";
     XCURSOR_SIZE = "24";
   };
 
-  # Wayland + Hyprland
+  # Hyprland Wayland window manager
   wayland.windowManager.hyprland = {
     enable = true;
 
-    # Usamos el wrapper modular ya puramente declarativo
-    package = "${hyprlandWrapper}/bin/hyprland-nixgl";
-    portalPackage = "${hyprlandWrapper}/bin/hyprland-nixgl";
+    # Usamos el wrapper modular con nixGL
+    package = hyprlandWrapper/bin/hyprland-nixgl;
+    portalPackage = pkgs.xdg-desktop-portal-hyprland;
 
     settings = {
       ## Monitors
       monitor = ",1920x1080@60,auto,auto";
 
-      ## My Programs
+      ## Programs
       "$terminal" = "kitty";
       "$filemanager" = "dolphin";
       "$menu" = "rofi -show drun";
@@ -119,7 +131,6 @@ in
         kb_rules = "";
         follow_mouse = 1;
         sensitivity = 0;
-
         touchpad = { natural_scroll = false; };
       };
 
