@@ -47,7 +47,7 @@ in
   wayland.windowManager.hyprland = {
     enable = true;
     package = hyprlandBase;
-    portalPackage = pkgs.xdg-desktop-portal-hyprland;
+    #portalPackage = pkgs.xdg-desktop-portal-hyprland;
 
     settings = {
       monitor = ",1920x1080@60,auto,auto";
