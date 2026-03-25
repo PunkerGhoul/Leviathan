@@ -13,7 +13,7 @@
 
   programs.zsh.enable = true;
   programs.zsh.loginExtra = ''
-    if [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ] && [ "${XDG_VTNR:-}" = "1" ]; then
+    if [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ] && [ "''${XDG_VTNR:-}" = "1" ]; then
       if command -v uwsm >/dev/null 2>&1 && uwsm check may-start; then
         exec uwsm start hyprland.desktop
       fi
