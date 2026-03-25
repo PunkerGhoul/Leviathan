@@ -28,7 +28,7 @@
     if [ "$current_shell" != "$target_shell" ]; then
       if [ -x /usr/bin/sudo ]; then
         if ! ${pkgs.gnugrep}/bin/grep -qxF "$target_shell" /etc/shells; then
-          $DRY_RUN_CMD /usr/bin/sudo ${pkgs.coreutils}/bin/sh -c \
+          $DRY_RUN_CMD /usr/bin/sudo /bin/sh -c \
             "${pkgs.coreutils}/bin/printf '%s\n' '$target_shell' >> /etc/shells"
         fi
         $DRY_RUN_CMD /usr/bin/sudo chsh -s "$target_shell" "$USER"
