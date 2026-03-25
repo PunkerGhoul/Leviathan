@@ -4,6 +4,14 @@ let
   # Hyprland con XWayland habilitado
   hyprlandBase = pkgs.hyprland.override { enableXWayland = true; };
   hyprlandWrapped = config.lib.nixGL.wrap hyprlandBase;
+  hyprlandPackage = pkgs.runCommand "hyprland-nixgl-session" {
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+  } ''
+    mkdir -p "$out"
+    cp -rs ${hyprlandWrapped}/* "$out"/
+    rm -f "$out/bin/start-hyprland"
+    makeWrapper ${hyprlandWrapped}/bin/Hyprland "$out/bin/start-hyprland"
+  '';
 in
 {
   # Cursor global
@@ -23,7 +31,7 @@ in
   # Hyprland para Home Manager
   wayland.windowManager.hyprland = {
     enable = true;
-    package = hyprlandWrapped;
+    package = hyprlandPackage;
     #portalPackage = pkgs.xdg-desktop-portal-hyprland;
 
     settings = {
