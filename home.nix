@@ -42,33 +42,35 @@
   '';
 
   home.activation.reloadUserSystemdForUwsm = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+    mkdir -p "$HOME/.config/systemd/user"
+
+    ln -sfn "${pkgs.uwsm}/lib/systemd/user/app-graphical.slice" \
+      "$HOME/.config/systemd/user/app-graphical.slice"
+    ln -sfn "${pkgs.uwsm}/lib/systemd/user/background-graphical.slice" \
+      "$HOME/.config/systemd/user/background-graphical.slice"
+    ln -sfn "${pkgs.uwsm}/lib/systemd/user/session-graphical.slice" \
+      "$HOME/.config/systemd/user/session-graphical.slice"
+    ln -sfn "${pkgs.uwsm}/lib/systemd/user/wayland-session-bindpid@.service" \
+      "$HOME/.config/systemd/user/wayland-session-bindpid@.service"
+    ln -sfn "${pkgs.uwsm}/lib/systemd/user/wayland-session-envelope@.target" \
+      "$HOME/.config/systemd/user/wayland-session-envelope@.target"
+    ln -sfn "${pkgs.uwsm}/lib/systemd/user/wayland-session-pre@.target" \
+      "$HOME/.config/systemd/user/wayland-session-pre@.target"
+    ln -sfn "${pkgs.uwsm}/lib/systemd/user/wayland-session-shutdown.target" \
+      "$HOME/.config/systemd/user/wayland-session-shutdown.target"
+    ln -sfn "${pkgs.uwsm}/lib/systemd/user/wayland-session-waitenv.service" \
+      "$HOME/.config/systemd/user/wayland-session-waitenv.service"
+    ln -sfn "${pkgs.uwsm}/lib/systemd/user/wayland-session-xdg-autostart@.target" \
+      "$HOME/.config/systemd/user/wayland-session-xdg-autostart@.target"
+    ln -sfn "${pkgs.uwsm}/lib/systemd/user/wayland-wm-env@.service" \
+      "$HOME/.config/systemd/user/wayland-wm-env@.service"
+    ln -sfn "${pkgs.uwsm}/lib/systemd/user/wayland-wm@.service" \
+      "$HOME/.config/systemd/user/wayland-wm@.service"
+
     if [ -n "$XDG_RUNTIME_DIR" ] && [ -S "$XDG_RUNTIME_DIR/systemd/private" ]; then
       ${pkgs.systemd}/bin/systemctl --user daemon-reload || true
     fi
   '';
-
-  home.file.".config/systemd/user/app-graphical.slice".source =
-    "${pkgs.uwsm}/lib/systemd/user/app-graphical.slice";
-  home.file.".config/systemd/user/background-graphical.slice".source =
-    "${pkgs.uwsm}/lib/systemd/user/background-graphical.slice";
-  home.file.".config/systemd/user/session-graphical.slice".source =
-    "${pkgs.uwsm}/lib/systemd/user/session-graphical.slice";
-  home.file.".config/systemd/user/wayland-session-bindpid@.service".source =
-    "${pkgs.uwsm}/lib/systemd/user/wayland-session-bindpid@.service";
-  home.file.".config/systemd/user/wayland-session-envelope@.target".source =
-    "${pkgs.uwsm}/lib/systemd/user/wayland-session-envelope@.target";
-  home.file.".config/systemd/user/wayland-session-pre@.target".source =
-    "${pkgs.uwsm}/lib/systemd/user/wayland-session-pre@.target";
-  home.file.".config/systemd/user/wayland-session-shutdown.target".source =
-    "${pkgs.uwsm}/lib/systemd/user/wayland-session-shutdown.target";
-  home.file.".config/systemd/user/wayland-session-waitenv.service".source =
-    "${pkgs.uwsm}/lib/systemd/user/wayland-session-waitenv.service";
-  home.file.".config/systemd/user/wayland-session-xdg-autostart@.target".source =
-    "${pkgs.uwsm}/lib/systemd/user/wayland-session-xdg-autostart@.target";
-  home.file.".config/systemd/user/wayland-wm-env@.service".source =
-    "${pkgs.uwsm}/lib/systemd/user/wayland-wm-env@.service";
-  home.file.".config/systemd/user/wayland-wm@.service".source =
-    "${pkgs.uwsm}/lib/systemd/user/wayland-wm@.service";
 
   imports = [
     ./modules
