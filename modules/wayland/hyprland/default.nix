@@ -15,7 +15,7 @@ let
       rm -f "$out/bin/start-hyprland"
       cat > "$out/bin/start-hyprland" <<EOF
 #!/bin/sh
-exec ${pkgs.seatd}/bin/seatd-launch ${pkgs.uwsm}/bin/uwsm start hyprland.desktop
+exec ${pkgs.uwsm}/bin/uwsm start hyprland.desktop
 EOF
       chmod +x "$out/bin/start-hyprland"
     '';
@@ -38,7 +38,6 @@ in
   };
 
   home.packages = [
-    pkgs.seatd
     pkgs.uwsm
   ];
 
