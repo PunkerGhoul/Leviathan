@@ -22,7 +22,7 @@
   programs.git.enable = true;
 
   home.activation.setDefaultShell = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    current_shell="$(${pkgs.glibc.bin}/bin/getent passwd "$USER" | cut -d: -f7)"
+    current_shell="$(${pkgs.glibc}/bin/getent passwd "$USER" | cut -d: -f7)"
     target_shell="${pkgs.zsh}/bin/zsh"
 
     if [ "$current_shell" != "$target_shell" ]; then
