@@ -41,6 +41,12 @@
     fi
   '';
 
+  home.activation.reloadUserSystemdForUwsm = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+    if [ -n "$XDG_RUNTIME_DIR" ] && [ -S "$XDG_RUNTIME_DIR/systemd/private" ]; then
+      ${pkgs.systemd}/bin/systemctl --user daemon-reload || true
+    fi
+  '';
+
   xdg.configFile."systemd/user/app-graphical.slice".source =
     "${pkgs.uwsm}/lib/systemd/user/app-graphical.slice";
   xdg.configFile."systemd/user/background-graphical.slice".source =
