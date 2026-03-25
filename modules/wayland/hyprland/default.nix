@@ -10,7 +10,7 @@ let
       nativeBuildInputs = [ pkgs.makeWrapper ];
     } ''
       mkdir -p "$out"
-      cp -rs ${hyprlandWrapped}/* "$out"/
+      cp -r ${hyprlandWrapped}/. "$out"/
       rm -f "$out/bin/start-hyprland"
       makeWrapper ${hyprlandWrapped}/bin/Hyprland "$out/bin/start-hyprland"
     '';
