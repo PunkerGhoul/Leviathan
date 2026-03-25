@@ -13,7 +13,11 @@ let
       cp -r ${hyprlandWrapped}/. "$out"/
       chmod -R u+w "$out"
       rm -f "$out/bin/start-hyprland"
-      makeWrapper ${hyprlandWrapped}/bin/Hyprland "$out/bin/start-hyprland"
+      cat > "$out/bin/start-hyprland" <<EOF
+#!/bin/sh
+exec ${pkgs.seatd}/bin/seatd-launch ${pkgs.uwsm}/bin/uwsm start hyprland.desktop
+EOF
+      chmod +x "$out/bin/start-hyprland"
     '';
 
   hyprlandPackage = lib.makeOverridable mkHyprlandPackage { };
@@ -32,6 +36,11 @@ in
     XCURSOR_THEME = "Adwaita";
     XCURSOR_SIZE = "24";
   };
+
+  home.packages = [
+    pkgs.seatd
+    pkgs.uwsm
+  ];
 
   # Hyprland para Home Manager
   wayland.windowManager.hyprland = {
@@ -132,6 +141,6 @@ in
     };
 
     extraConfig = builtins.readFile ./hyprland.conf;
-    systemd.enableXdgAutostart = true;
+    systemd.enable = false;
   };
 }
