@@ -15,6 +15,14 @@
       system = "x86_64-linux";
       overlays = [ nixgl.overlay ];
       pkgs = import nixpkgs { inherit system overlays; };
+      homeManagerBin = "${home-manager.packages.${system}.home-manager}/bin/home-manager";
+      applyLeviathan = pkgs.writeShellApplication {
+        name = "apply-leviathan";
+        runtimeInputs = [ home-manager.packages.${system}.home-manager ];
+        text = ''
+          exec ${homeManagerBin} switch --flake ${self}#ghoul -b backup "$@"
+        '';
+      };
     in
     {
       homeConfigurations.ghoul = home-manager.lib.homeManagerConfiguration {
@@ -27,7 +35,7 @@
 
       defaultApp.x86_64-linux = {
         type = "app";
-        program = "${self.homeConfigurations.ghoul.activationPackage}/activate";
+        program = "${applyLeviathan}/bin/apply-leviathan";
       };
     };
 }
