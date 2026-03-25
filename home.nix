@@ -1,4 +1,4 @@
-{ config, lib, pkgs, nixgl, ... }:
+{ pkgs, nixgl, ... }:
 
 {
   home.stateVersion = "25.11";
@@ -15,6 +15,6 @@
   programs.git.enable = true;
 
   imports = [
-    (import ./modules { inherit config lib pkgs; })
+    ./modules
   ];
 }

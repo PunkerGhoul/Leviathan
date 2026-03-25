@@ -3,6 +3,7 @@
 let
   # Hyprland con XWayland habilitado
   hyprlandBase = pkgs.hyprland.override { enableXWayland = true; };
+  hyprlandWrapped = config.lib.nixGL.wrap hyprlandBase;
 in
 {
   # Cursor global
@@ -22,7 +23,7 @@ in
   # Hyprland para Home Manager
   wayland.windowManager.hyprland = {
     enable = true;
-    package = hyprlandBase;
+    package = hyprlandWrapped;
     #portalPackage = pkgs.xdg-desktop-portal-hyprland;
 
     settings = {
