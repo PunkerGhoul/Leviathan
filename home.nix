@@ -15,7 +15,7 @@
   programs.zsh.loginExtra = ''
     if [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ] && [ "''${XDG_VTNR:-}" = "1" ]; then
       if command -v uwsm >/dev/null 2>&1 && uwsm check may-start; then
-        if ! uwsm start hyprland.desktop >> "$HOME/.local/state/uwsm-start.log" 2>&1; then
+        if ! uwsm start -- start-hyprland >> "$HOME/.local/state/uwsm-start.log" 2>&1; then
           echo "uwsm failed to start Hyprland. See $HOME/.local/state/uwsm-start.log" >&2
         fi
       fi
@@ -40,6 +40,29 @@
       fi
     fi
   '';
+
+  xdg.configFile."systemd/user/app-graphical.slice".source =
+    "${pkgs.uwsm}/lib/systemd/user/app-graphical.slice";
+  xdg.configFile."systemd/user/background-graphical.slice".source =
+    "${pkgs.uwsm}/lib/systemd/user/background-graphical.slice";
+  xdg.configFile."systemd/user/session-graphical.slice".source =
+    "${pkgs.uwsm}/lib/systemd/user/session-graphical.slice";
+  xdg.configFile."systemd/user/wayland-session-bindpid@.service".source =
+    "${pkgs.uwsm}/lib/systemd/user/wayland-session-bindpid@.service";
+  xdg.configFile."systemd/user/wayland-session-envelope@.target".source =
+    "${pkgs.uwsm}/lib/systemd/user/wayland-session-envelope@.target";
+  xdg.configFile."systemd/user/wayland-session-pre@.target".source =
+    "${pkgs.uwsm}/lib/systemd/user/wayland-session-pre@.target";
+  xdg.configFile."systemd/user/wayland-session-shutdown.target".source =
+    "${pkgs.uwsm}/lib/systemd/user/wayland-session-shutdown.target";
+  xdg.configFile."systemd/user/wayland-session-waitenv.service".source =
+    "${pkgs.uwsm}/lib/systemd/user/wayland-session-waitenv.service";
+  xdg.configFile."systemd/user/wayland-session-xdg-autostart@.target".source =
+    "${pkgs.uwsm}/lib/systemd/user/wayland-session-xdg-autostart@.target";
+  xdg.configFile."systemd/user/wayland-wm-env@.service".source =
+    "${pkgs.uwsm}/lib/systemd/user/wayland-wm-env@.service";
+  xdg.configFile."systemd/user/wayland-wm@.service".source =
+    "${pkgs.uwsm}/lib/systemd/user/wayland-wm@.service";
 
   imports = [
     ./modules
