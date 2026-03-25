@@ -1,17 +1,21 @@
-{ config, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 let
-  # Hyprland con XWayland habilitado
-  hyprlandBase = pkgs.hyprland.override { enableXWayland = true; };
-  hyprlandWrapped = config.lib.nixGL.wrap hyprlandBase;
-  hyprlandPackage = pkgs.runCommand "hyprland-nixgl-session" {
-    nativeBuildInputs = [ pkgs.makeWrapper ];
-  } ''
-    mkdir -p "$out"
-    cp -rs ${hyprlandWrapped}/* "$out"/
-    rm -f "$out/bin/start-hyprland"
-    makeWrapper ${hyprlandWrapped}/bin/Hyprland "$out/bin/start-hyprland"
-  '';
+  mkHyprlandPackage = { enableXWayland ? true }:
+    let
+      hyprlandBase = pkgs.hyprland.override { inherit enableXWayland; };
+      hyprlandWrapped = config.lib.nixGL.wrap hyprlandBase;
+    in
+    pkgs.runCommand "hyprland-nixgl-session" {
+      nativeBuildInputs = [ pkgs.makeWrapper ];
+    } ''
+      mkdir -p "$out"
+      cp -rs ${hyprlandWrapped}/* "$out"/
+      rm -f "$out/bin/start-hyprland"
+      makeWrapper ${hyprlandWrapped}/bin/Hyprland "$out/bin/start-hyprland"
+    '';
+
+  hyprlandPackage = lib.makeOverridable mkHyprlandPackage { };
 in
 {
   # Cursor global
