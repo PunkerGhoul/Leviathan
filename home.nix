@@ -47,27 +47,27 @@
     fi
   '';
 
-  xdg.configFile."systemd/user/app-graphical.slice".source =
+  home.file.".config/systemd/user/app-graphical.slice".source =
     "${pkgs.uwsm}/lib/systemd/user/app-graphical.slice";
-  xdg.configFile."systemd/user/background-graphical.slice".source =
+  home.file.".config/systemd/user/background-graphical.slice".source =
     "${pkgs.uwsm}/lib/systemd/user/background-graphical.slice";
-  xdg.configFile."systemd/user/session-graphical.slice".source =
+  home.file.".config/systemd/user/session-graphical.slice".source =
     "${pkgs.uwsm}/lib/systemd/user/session-graphical.slice";
-  xdg.configFile."systemd/user/wayland-session-bindpid@.service".source =
+  home.file.".config/systemd/user/wayland-session-bindpid@.service".source =
     "${pkgs.uwsm}/lib/systemd/user/wayland-session-bindpid@.service";
-  xdg.configFile."systemd/user/wayland-session-envelope@.target".source =
+  home.file.".config/systemd/user/wayland-session-envelope@.target".source =
     "${pkgs.uwsm}/lib/systemd/user/wayland-session-envelope@.target";
-  xdg.configFile."systemd/user/wayland-session-pre@.target".source =
+  home.file.".config/systemd/user/wayland-session-pre@.target".source =
     "${pkgs.uwsm}/lib/systemd/user/wayland-session-pre@.target";
-  xdg.configFile."systemd/user/wayland-session-shutdown.target".source =
+  home.file.".config/systemd/user/wayland-session-shutdown.target".source =
     "${pkgs.uwsm}/lib/systemd/user/wayland-session-shutdown.target";
-  xdg.configFile."systemd/user/wayland-session-waitenv.service".source =
+  home.file.".config/systemd/user/wayland-session-waitenv.service".source =
     "${pkgs.uwsm}/lib/systemd/user/wayland-session-waitenv.service";
-  xdg.configFile."systemd/user/wayland-session-xdg-autostart@.target".source =
+  home.file.".config/systemd/user/wayland-session-xdg-autostart@.target".source =
     "${pkgs.uwsm}/lib/systemd/user/wayland-session-xdg-autostart@.target";
-  xdg.configFile."systemd/user/wayland-wm-env@.service".source =
+  home.file.".config/systemd/user/wayland-wm-env@.service".source =
     "${pkgs.uwsm}/lib/systemd/user/wayland-wm-env@.service";
-  xdg.configFile."systemd/user/wayland-wm@.service".source =
+  home.file.".config/systemd/user/wayland-wm@.service".source =
     "${pkgs.uwsm}/lib/systemd/user/wayland-wm@.service";
 
   imports = [
