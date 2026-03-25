@@ -26,8 +26,8 @@
     target_shell="${pkgs.zsh}/bin/zsh"
 
     if [ "$current_shell" != "$target_shell" ]; then
-      if command -v sudo >/dev/null 2>&1; then
-        $DRY_RUN_CMD sudo chsh -s "$target_shell" "$USER"
+      if [ -x /usr/bin/sudo ]; then
+        $DRY_RUN_CMD /usr/bin/sudo chsh -s "$target_shell" "$USER"
       else
         echo "sudo is required to set zsh as the default shell for $USER" >&2
         exit 1
