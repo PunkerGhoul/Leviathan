@@ -11,6 +11,7 @@ let
     } ''
       mkdir -p "$out"
       cp -r ${hyprlandWrapped}/. "$out"/
+      chmod -R u+w "$out"
       rm -f "$out/bin/start-hyprland"
       makeWrapper ${hyprlandWrapped}/bin/Hyprland "$out/bin/start-hyprland"
     '';
