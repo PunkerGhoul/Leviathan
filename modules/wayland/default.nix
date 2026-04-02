@@ -4,7 +4,4 @@
   imports = [
     ./hyprland
   ];
-
-  wayland = {
-  };
 }

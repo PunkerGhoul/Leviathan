@@ -10,7 +10,7 @@
     nixgl.url = "github:guibou/nixGL";
   };
 
-  outputs = { self, nixpkgs, home-manager, nixgl, ... }:
+  outputs = { nixpkgs, home-manager, nixgl, ... }:
     let
       system = "x86_64-linux";
       overlays = [ nixgl.overlay ];
@@ -38,8 +38,7 @@
       apps.${system}.default = {
         type = "app";
         program = "${packages.${system}.apply-leviathan}/bin/apply-leviathan";
+        meta.description = "Apply the Leviathan Home Manager configuration.";
       };
-
-      defaultApp.${system} = apps.${system}.default;
     };
 }
