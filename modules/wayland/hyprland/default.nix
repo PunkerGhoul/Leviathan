@@ -12,6 +12,18 @@ let
       mkdir -p "$out"
       cp -r ${hyprlandWrapped}/. "$out"/
       chmod -R u+w "$out"
+      mv "$out/bin/Hyprland" "$out/bin/Hyprland-real"
+      cat > "$out/bin/Hyprland" <<EOF
+#!/bin/sh
+state_dir="\${XDG_STATE_HOME:-\$HOME/.local/state}"
+log_file="\$state_dir/hyprland.log"
+
+mkdir -p "\$state_dir"
+echo "=== \$(date -Is) starting Hyprland ===" >> "\$log_file"
+
+exec "$out/bin/Hyprland-real" >> "\$log_file" 2>&1
+EOF
+      chmod +x "$out/bin/Hyprland"
       rm -f "$out/bin/start-hyprland"
       cat > "$out/bin/start-hyprland" <<EOF
 #!/bin/sh
@@ -108,6 +120,10 @@ in
         enable_swallow = true;
         swallow_regex = "^(kitty)$";
         focus_on_activate = false;
+      };
+
+      debug = {
+        disable_logs = false;
       };
 
       input = { kb_layout = "latam"; kb_variant = ""; kb_model = ""; kb_options = ""; kb_rules = ""; follow_mouse = 1; sensitivity = 0; touchpad = { natural_scroll = false; }; };
