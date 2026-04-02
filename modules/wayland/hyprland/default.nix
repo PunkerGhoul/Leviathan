@@ -1,6 +1,14 @@
 { config, lib, pkgs, ... }:
 
 let
+  defaultNixGLScript =
+    {
+      mesa = "nixGLMesa";
+      mesaPrime = "nixGLMesaPrime";
+      nvidia = "nixGLNvidia";
+      nvidiaPrime = "nixGLNvidiaPrime";
+    }.${config.targets.genericLinux.nixGL.defaultWrapper};
+
   mkHyprlandPackage = { enableXWayland ? true }:
     let
       hyprlandBase = pkgs.hyprland.override { inherit enableXWayland; };
@@ -22,20 +30,52 @@ mkdir -p "$state_dir"
 echo "=== $(date -Is) starting Hyprland ===" >> "$log_file"
 
 script_dir="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+
+# Keep stdout/stderr untouched for helper invocations such as version probes.
+if [ "$#" -gt 0 ]; then
+  exec "$script_dir/Hyprland-real" "$@"
+fi
+
 exec "$script_dir/Hyprland-real" >> "$log_file" 2>&1
 EOF
       chmod +x "$out/bin/Hyprland"
-      rm -f "$out/bin/start-hyprland"
-      cat > "$out/bin/start-hyprland" <<EOF
-#!/bin/sh
-exec "$out/bin/Hyprland"
-EOF
-      chmod +x "$out/bin/start-hyprland"
+
+      if [ -f "$out/share/wayland-sessions/hyprland.desktop" ]; then
+        sed \
+          "s|^Exec=.*$|Exec=$out/bin/Hyprland|" \
+          "$out/share/wayland-sessions/hyprland.desktop" \
+          > "$out/share/wayland-sessions/hyprland.desktop.tmp"
+        mv "$out/share/wayland-sessions/hyprland.desktop.tmp" \
+          "$out/share/wayland-sessions/hyprland.desktop"
+      fi
     '';
 
   hyprlandPackage = lib.makeOverridable mkHyprlandPackage { };
+  nixGLCompat = pkgs.writeShellScriptBin "nixGL" ''
+    exec ${defaultNixGLScript} "$@"
+  '';
 in
 {
+  xdg.configFile = {
+    "hypr/.current-theme".source = ./config/.current-theme;
+    "hypr/autostart.conf".source = ./config/autostart.conf;
+    "hypr/hypridle.conf".source = ./config/hypridle.conf;
+    "hypr/hyprlock.conf".source = ./config/hyprlock.conf;
+    "hypr/hyprshot.conf".source = ./config/hyprshot.conf;
+    "hypr/input.conf".source = ./config/input.conf;
+    "hypr/keybinds.conf".source = ./config/keybinds.conf;
+    "hypr/look-and-feel.conf".source = ./config/look-and-feel.conf;
+    "hypr/monitors.conf".source = ./config/monitors.conf;
+    "hypr/programs.conf".source = ./config/programs.conf;
+    "hypr/rules.conf".source = ./config/rules.conf;
+    "hypr/theme-switcher.conf".source = ./config/theme-switcher.conf;
+    "hypr/variables.conf".source = ./config/variables.conf;
+    "hypr/themes" = {
+      source = ./config/themes;
+      recursive = true;
+    };
+  };
+
   # Cursor global
   home.pointerCursor = {
     name = "Adwaita";
@@ -51,7 +91,8 @@ in
   };
 
   home.packages = [
-    pkgs.uwsm
+    hyprlandPackage
+    nixGLCompat
   ];
 
   # Hyprland para Home Manager
@@ -104,7 +145,7 @@ in
       };
 
       dwindle = { pseudotile = true; preserve_split = true; force_split = 0; special_scale_factor = 0.9; };
-      master = { new_status = "master"; new_on_top = false; mfact = 0.55; orientation = "left"; inherit_fullscreen = true; };
+      master = { new_status = "master"; new_on_top = false; mfact = 0.55; orientation = "left"; };
 
       misc = {
         force_default_wallpaper = 0;

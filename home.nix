@@ -9,18 +9,10 @@
   targets.genericLinux.nixGL = {
     packages = nixgl.packages;
     defaultWrapper = "mesa";
+    installScripts = [ "mesa" ];
   };
 
   programs.zsh.enable = true;
-  programs.zsh.loginExtra = ''
-    if [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ] && [ "''${XDG_VTNR:-}" = "1" ]; then
-      if command -v uwsm >/dev/null 2>&1 && uwsm check may-start; then
-        if ! uwsm start hyprland.desktop >> "$HOME/.local/state/uwsm-start.log" 2>&1; then
-          echo "uwsm failed to start Hyprland. See $HOME/.local/state/uwsm-start.log" >&2
-        fi
-      fi
-    fi
-  '';
   programs.git.enable = true;
 
   home.activation.setDefaultShell = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
@@ -38,37 +30,6 @@
         echo "sudo is required to set zsh as the default shell for $USER" >&2
         exit 1
       fi
-    fi
-  '';
-
-  home.activation.reloadUserSystemdForUwsm = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
-    mkdir -p "$HOME/.config/systemd/user"
-
-    ln -sfn "${pkgs.uwsm}/lib/systemd/user/app-graphical.slice" \
-      "$HOME/.config/systemd/user/app-graphical.slice"
-    ln -sfn "${pkgs.uwsm}/lib/systemd/user/background-graphical.slice" \
-      "$HOME/.config/systemd/user/background-graphical.slice"
-    ln -sfn "${pkgs.uwsm}/lib/systemd/user/session-graphical.slice" \
-      "$HOME/.config/systemd/user/session-graphical.slice"
-    ln -sfn "${pkgs.uwsm}/lib/systemd/user/wayland-session-bindpid@.service" \
-      "$HOME/.config/systemd/user/wayland-session-bindpid@.service"
-    ln -sfn "${pkgs.uwsm}/lib/systemd/user/wayland-session-envelope@.target" \
-      "$HOME/.config/systemd/user/wayland-session-envelope@.target"
-    ln -sfn "${pkgs.uwsm}/lib/systemd/user/wayland-session-pre@.target" \
-      "$HOME/.config/systemd/user/wayland-session-pre@.target"
-    ln -sfn "${pkgs.uwsm}/lib/systemd/user/wayland-session-shutdown.target" \
-      "$HOME/.config/systemd/user/wayland-session-shutdown.target"
-    ln -sfn "${pkgs.uwsm}/lib/systemd/user/wayland-session-waitenv.service" \
-      "$HOME/.config/systemd/user/wayland-session-waitenv.service"
-    ln -sfn "${pkgs.uwsm}/lib/systemd/user/wayland-session-xdg-autostart@.target" \
-      "$HOME/.config/systemd/user/wayland-session-xdg-autostart@.target"
-    ln -sfn "${pkgs.uwsm}/lib/systemd/user/wayland-wm-env@.service" \
-      "$HOME/.config/systemd/user/wayland-wm-env@.service"
-    ln -sfn "${pkgs.uwsm}/lib/systemd/user/wayland-wm@.service" \
-      "$HOME/.config/systemd/user/wayland-wm@.service"
-
-    if [ -n "$XDG_RUNTIME_DIR" ] && [ -S "$XDG_RUNTIME_DIR/systemd/private" ]; then
-      ${pkgs.systemd}/bin/systemctl --user daemon-reload || true
     fi
   '';
 

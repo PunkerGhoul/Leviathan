@@ -20,11 +20,11 @@
         name = "apply-leviathan";
         runtimeInputs = [ home-manager.packages.${system}.home-manager ];
         text = ''
-          exec ${homeManagerBin} switch --flake ${self}#ghoul -b backup "$@"
+          exec ${homeManagerBin} switch --flake .#ghoul -b backup "$@"
         '';
       };
     in
-    {
+    rec {
       homeConfigurations.ghoul = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
         modules = [ ./home.nix ];
@@ -33,9 +33,13 @@
         };
       };
 
-      defaultApp.x86_64-linux = {
+      packages.${system}.apply-leviathan = applyLeviathan;
+
+      apps.${system}.default = {
         type = "app";
-        program = "${applyLeviathan}/bin/apply-leviathan";
+        program = "${packages.${system}.apply-leviathan}/bin/apply-leviathan";
       };
+
+      defaultApp.${system} = apps.${system}.default;
     };
 }

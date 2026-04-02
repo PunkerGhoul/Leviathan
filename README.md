@@ -7,6 +7,14 @@ Arch + Wayland + Hyprland + Nix
 This repository is set up to be used as a pure Home Manager flake.
 
 ```bash
+nix run .
+```
+
+This is the recommended entrypoint because it uses the `home-manager` bundled by the flake itself, so it works even if `home-manager` is not installed globally.
+
+If you already have `home-manager` in your `PATH`, this remains equivalent:
+
+```bash
 home-manager switch --flake .#ghoul -b backup
 ```
 

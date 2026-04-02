@@ -1,4 +1,4 @@
-source = ~/.config/hypr/themes/Dracula.conf
+source = /home/ghoul/.config/hypr/themes/Dracula.conf
 # #######################################################################################
 # MODULAR HYPRLAND CONFIG
 # EDIT THE INDIVIDUAL FILES IN hypr/ TO CUSTOMIZE EACH SECTION
