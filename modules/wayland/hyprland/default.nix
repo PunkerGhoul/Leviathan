@@ -8,6 +8,7 @@ let
       nvidia = "nixGLNvidia";
       nvidiaPrime = "nixGLNvidiaPrime";
     }.${config.targets.genericLinux.nixGL.defaultWrapper};
+  intelNixGLScript = "nixGLMesa";
 
   mkHyprlandPackage = { enableXWayland ? true }:
     let
@@ -54,6 +55,12 @@ EOF
   nixGLCompat = pkgs.writeShellScriptBin "nixGL" ''
     exec ${defaultNixGLScript} "$@"
   '';
+  nixGLIntelCompat = pkgs.writeShellScriptBin "nixGL-intel" ''
+    exec ${intelNixGLScript} "$@"
+  '';
+  primeRunCompat = pkgs.writeShellScriptBin "prime-run" ''
+    exec prime-offload "$@"
+  '';
 in
 {
   xdg.configFile = {
@@ -93,6 +100,8 @@ in
   home.packages = [
     hyprlandPackage
     nixGLCompat
+    nixGLIntelCompat
+    primeRunCompat
   ];
 
   # Hyprland para Home Manager

@@ -25,3 +25,25 @@ home-manager switch --flake .#ghoul -b backup
 - paths outside the flake input graph
 
 For `Leviathan`, Wayland/Hyprland is not a reason to use `--impure`.
+
+## Optimus / Hybrid GPUs
+
+`Leviathan` keeps the Hyprland session on the iGPU by default through `nixGLMesa`,
+which is the safest setup for hybrid Intel + NVIDIA laptops.
+
+The flake also installs pure helper commands for the common Optimus flows:
+
+```bash
+nixGL-intel <app>
+prime-run <app>
+prime-offload <app>
+```
+
+Recommended usage:
+
+- Run `Hyprland` itself on Intel/iGPU.
+- Launch host-installed GPU-heavy apps on NVIDIA with `prime-run` or `prime-offload`.
+
+This project does not install the proprietary NVIDIA driver or CUDA toolkit.
+Those still come from the host system (for example Arch packages such as
+`nvidia-open-dkms`, `nvidia-utils`, and `cuda`).

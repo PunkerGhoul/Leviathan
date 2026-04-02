@@ -9,7 +9,11 @@
   targets.genericLinux.nixGL = {
     packages = nixgl.packages;
     defaultWrapper = "mesa";
-    installScripts = [ "mesa" ];
+    offloadWrapper = "mesaPrime";
+    # Keep the compositor on the iGPU and expose only pure wrappers.
+    installScripts = [ "mesa" "mesaPrime" ];
+    # Install a PRIME offload helper for host applications on hybrid systems.
+    prime.installScript = "nvidia";
   };
 
   programs.zsh.enable = true;
