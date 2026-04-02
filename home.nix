@@ -15,7 +15,7 @@
   programs.zsh.loginExtra = ''
     if [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ] && [ "''${XDG_VTNR:-}" = "1" ]; then
       if command -v uwsm >/dev/null 2>&1 && uwsm check may-start; then
-        if ! uwsm start -- start-hyprland >> "$HOME/.local/state/uwsm-start.log" 2>&1; then
+        if ! uwsm start hyprland.desktop >> "$HOME/.local/state/uwsm-start.log" 2>&1; then
           echo "uwsm failed to start Hyprland. See $HOME/.local/state/uwsm-start.log" >&2
         fi
       fi

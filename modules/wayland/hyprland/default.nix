@@ -15,7 +15,7 @@ let
       rm -f "$out/bin/start-hyprland"
       cat > "$out/bin/start-hyprland" <<EOF
 #!/bin/sh
-exec ${pkgs.uwsm}/bin/uwsm start hyprland.desktop
+exec "$out/bin/Hyprland"
 EOF
       chmod +x "$out/bin/start-hyprland"
     '';
