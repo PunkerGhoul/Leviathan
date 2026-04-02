@@ -15,7 +15,7 @@ let
       mv "$out/bin/Hyprland" "$out/bin/Hyprland-real"
       cat > "$out/bin/Hyprland" <<'EOF'
 #!/bin/sh
-state_dir="${XDG_STATE_HOME:-$HOME/.local/state}"
+state_dir="''${XDG_STATE_HOME:-$HOME/.local/state}"
 log_file="$state_dir/hyprland.log"
 
 mkdir -p "$state_dir"
