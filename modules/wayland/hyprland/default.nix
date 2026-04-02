@@ -15,13 +15,13 @@ let
       mv "$out/bin/Hyprland" "$out/bin/Hyprland-real"
       cat > "$out/bin/Hyprland" <<EOF
 #!/bin/sh
-state_dir="\${XDG_STATE_HOME:-\$HOME/.local/state}"
-log_file="\$state_dir/hyprland.log"
+state_dir="''${XDG_STATE_HOME:-$HOME/.local/state}"
+log_file="$state_dir/hyprland.log"
 
-mkdir -p "\$state_dir"
-echo "=== \$(date -Is) starting Hyprland ===" >> "\$log_file"
+mkdir -p "$state_dir"
+echo "=== $(date -Is) starting Hyprland ===" >> "$log_file"
 
-exec "$out/bin/Hyprland-real" >> "\$log_file" 2>&1
+exec "$out/bin/Hyprland-real" >> "$log_file" 2>&1
 EOF
       chmod +x "$out/bin/Hyprland"
       rm -f "$out/bin/start-hyprland"
