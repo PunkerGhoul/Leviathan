@@ -255,6 +255,24 @@
   margin-bottom: 2px;
 }
 
+.network-scroll-row {
+  margin-bottom: 4px;
+}
+
+.network-scroll-btn {
+  background: rgba(68, 71, 90, 0.65);
+  border: 1px solid rgba(189, 147, 249, 0.2);
+  border-radius: 4px;
+  color: var(--text-muted);
+  min-width: 18px;
+  padding: 1px 4px;
+}
+
+.network-scroll-btn:hover {
+  background: rgba(98, 114, 164, 0.35);
+  color: var(--text);
+}
+
 .network-list-compact {
   font-size: 10px;
   color: var(--text);

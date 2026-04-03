@@ -130,28 +130,48 @@
               class = "network-section-title"
             }
             {
-              type = "button"
-              label = "{{1200:network-status slot known 0}}"
-              class = "network-list-compact"
-              on_click_left = "leviathan-network-connect-known 0"
+              type = "box"
+              orientation = "horizontal"
+              class = "network-scroll-row"
+
+              widgets = [
+                {
+                  type = "button"
+                  label = "▲"
+                  class = "network-scroll-btn"
+                  on_click = "!leviathan-network-scroll known up 4"
+                }
+                {
+                  type = "button"
+                  label = "▼"
+                  class = "network-scroll-btn"
+                  on_click = "!leviathan-network-scroll known down 4"
+                }
+              ]
             }
             {
               type = "button"
-              label = "{{1200:network-status slot known 1}}"
+              label = "{{1200:leviathan-network-slot-ui known 0}}"
               class = "network-list-compact"
-              on_click_left = "leviathan-network-connect-known 1"
+              on_click = "!leviathan-network-connect-ui known 0"
             }
             {
               type = "button"
-              label = "{{1200:network-status slot known 2}}"
+              label = "{{1200:leviathan-network-slot-ui known 1}}"
               class = "network-list-compact"
-              on_click_left = "leviathan-network-connect-known 2"
+              on_click = "!leviathan-network-connect-ui known 1"
             }
             {
               type = "button"
-              label = "{{1200:network-status slot known 3}}"
+              label = "{{1200:leviathan-network-slot-ui known 2}}"
               class = "network-list-compact"
-              on_click_left = "leviathan-network-connect-known 3"
+              on_click = "!leviathan-network-connect-ui known 2"
+            }
+            {
+              type = "button"
+              label = "{{1200:leviathan-network-slot-ui known 3}}"
+              class = "network-list-compact"
+              on_click = "!leviathan-network-connect-ui known 3"
             }
             {
               type = "label"
@@ -159,46 +179,66 @@
               class = "network-section-title"
             }
             {
-              type = "button"
-              label = "{{1500:network-status slot available 0}}"
-              class = "network-list-compact"
-              on_click_left = "leviathan-network-connect-available 0"
+              type = "box"
+              orientation = "horizontal"
+              class = "network-scroll-row"
+
+              widgets = [
+                {
+                  type = "button"
+                  label = "▲"
+                  class = "network-scroll-btn"
+                  on_click = "!leviathan-network-scroll available up 6"
+                }
+                {
+                  type = "button"
+                  label = "▼"
+                  class = "network-scroll-btn"
+                  on_click = "!leviathan-network-scroll available down 6"
+                }
+              ]
             }
             {
               type = "button"
-              label = "{{1500:network-status slot available 1}}"
+              label = "{{1500:leviathan-network-slot-ui available 0}}"
               class = "network-list-compact"
-              on_click_left = "leviathan-network-connect-available 1"
+              on_click = "!leviathan-network-connect-ui available 0"
             }
             {
               type = "button"
-              label = "{{1500:network-status slot available 2}}"
+              label = "{{1500:leviathan-network-slot-ui available 1}}"
               class = "network-list-compact"
-              on_click_left = "leviathan-network-connect-available 2"
+              on_click = "!leviathan-network-connect-ui available 1"
             }
             {
               type = "button"
-              label = "{{1500:network-status slot available 3}}"
+              label = "{{1500:leviathan-network-slot-ui available 2}}"
               class = "network-list-compact"
-              on_click_left = "leviathan-network-connect-available 3"
+              on_click = "!leviathan-network-connect-ui available 2"
             }
             {
               type = "button"
-              label = "{{1500:network-status slot available 4}}"
+              label = "{{1500:leviathan-network-slot-ui available 3}}"
               class = "network-list-compact"
-              on_click_left = "leviathan-network-connect-available 4"
+              on_click = "!leviathan-network-connect-ui available 3"
             }
             {
               type = "button"
-              label = "{{1500:network-status slot available 5}}"
+              label = "{{1500:leviathan-network-slot-ui available 4}}"
               class = "network-list-compact"
-              on_click_left = "leviathan-network-connect-available 5"
+              on_click = "!leviathan-network-connect-ui available 4"
+            }
+            {
+              type = "button"
+              label = "{{1500:leviathan-network-slot-ui available 5}}"
+              class = "network-list-compact"
+              on_click = "!leviathan-network-connect-ui available 5"
             }
             {
               type = "button"
               label = "More Options"
               class = "network-options-btn"
-              on_click = "nm-connection-editor"
+              on_click = "!nm-connection-editor"
             }
           ]
         }

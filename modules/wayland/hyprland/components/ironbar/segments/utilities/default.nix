@@ -15,8 +15,10 @@ in
     bluetooth
     updates.updatesScript
     updates.runUpdatesScript
-    network.networkConnectKnownScript
-    network.networkConnectAvailableScript
+    network.networkSlotUiScript
+    network.networkConnectUiScript
+    network.networkScrollScript
+    network.networkResetScrollScript
     powerIconScript
   ];
 
