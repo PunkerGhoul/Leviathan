@@ -1,0 +1,191 @@
+{
+  anchor_to_edges = true
+  height = 38
+  icon_theme = "Adwaita"
+  margin.top = 10
+  margin.left = 10
+  margin.right = 10
+  position = "top"
+  popup_autohide = true
+  popup_gap = 8
+
+  start = [
+    {
+      type = "script"
+      name = "arch-launcher"
+      cmd = "leviathan-arch-button"
+      on_click_left = "leviathan-launcher"
+    }
+    {
+      type = "workspaces"
+      name = "workspaces"
+    }
+    {
+      type = "script"
+      name = "quick-terminal"
+      cmd = "leviathan-quick-terminal"
+      on_click_left = "kitty"
+    }
+    {
+      type = "script"
+      name = "quick-files"
+      cmd = "leviathan-quick-files"
+      on_click_left = "thunar"
+    }
+    {
+      type = "script"
+      name = "quick-browser"
+      cmd = "leviathan-quick-browser"
+      on_click_left = "librewolf"
+    }
+    {
+      type = "script"
+      name = "quick-wallpaper"
+      cmd = "leviathan-quick-wallpaper"
+      on_click_left = "leviathan-wallpaper-picker"
+    }
+    {
+      type = "script"
+      name = "quick-screenshot"
+      cmd = "leviathan-quick-screenshot"
+      on_click_left = "leviathan-screenshot"
+    }
+    {
+      type = "script"
+      name = "quick-settings"
+      cmd = "leviathan-quick-settings"
+      on_click_left = "leviathan-settings"
+    }
+  ]
+
+  center = [
+    {
+      type = "clock"
+      name = "clock"
+      format = "%m/%d/%Y  %I:%M %p"
+    }
+    {
+      type = "music"
+      name = "music"
+    }
+  ]
+
+  end = [
+    {
+      type = "clipboard"
+      name = "clipboard"
+      icon = "󰨸"
+      max_items = 10
+      truncate.mode = "end"
+      truncate.max_length = 60
+    }
+    {
+      type = "script"
+      name = "updates"
+      cmd = "leviathan-updates"
+      interval = 600000
+      on_click_left = "leviathan-run-updates"
+    }
+    {
+      type = "custom"
+      name = "network"
+      
+      bar = [
+        {
+          type = "button"
+          label = "{{5000:leviathan-wifi-icon}}"
+          class = "network-btn"
+          on_click = "popup:toggle"
+        }
+      ]
+      
+      popup = [
+        {
+          type = "box"
+          orientation = "vertical"
+          class = "network-popup"
+          
+          widgets = [
+            {
+              type = "label"
+              label = "Network"
+              class = "network-header"
+              name = "network-title"
+            }
+            {
+              type = "label"
+              label = "{{5000:leviathan-wifi-networks connected}}"
+              class = "network-connected"
+              name = "network-status"
+            }
+            {
+              type = "box"
+              orientation = "vertical"
+              class = "network-section"
+              
+              widgets = [
+                {
+                  type = "label"
+                  label = "Preferred Networks"
+                  class = "network-section-title"
+                }
+                {
+                  type = "label"
+                  label = "{{10000:leviathan-wifi-networks known}}"
+                  class = "network-list"
+                }
+              ]
+            }
+            {
+              type = "box"
+              orientation = "vertical"
+              class = "network-section"
+              
+              widgets = [
+                {
+                  type = "label"
+                  label = "Available Networks"
+                  class = "network-section-title"
+                }
+                {
+                  type = "label"
+                  label = "{{5000:leviathan-wifi-networks available}}"
+                  class = "network-list"
+                }
+              ]
+            }
+            {
+              type = "button"
+              label = "More Options"
+              class = "network-options-btn"
+              on_click = "!nm-connection-editor"
+            }
+          ]
+        }
+      ]
+    }
+    {
+      type = "script"
+      name = "bluetooth"
+      cmd = "leviathan-bluetooth-status"
+      interval = 5000
+      on_click_left = "blueman-manager"
+    }
+    {
+      type = "volume"
+      name = "volume"
+    }
+    {
+      type = "script"
+      name = "battery"
+      cmd = "leviathan-battery"
+      interval = 5000
+    }
+    {
+      type = "script"
+      name = "power"
+      cmd = "leviathan-power-icon"
+      on_click_left = "leviathan-power-menu"
+    }
+  ]
+}
