@@ -93,7 +93,7 @@
       bar = [
         {
           type = "button"
-          label = "{{5000:leviathan-wifi-icon}}"
+          label = "{{500:network-status icon}}"
           class = "network-btn"
           on_click = "popup:toggle"
         }
@@ -114,51 +114,91 @@
             }
             {
               type = "label"
-              label = "{{5000:leviathan-wifi-networks connected}}"
-              class = "network-connected"
+              label = "{{500:network-status connected}}"
+              class = "network-status"
               name = "network-status"
             }
             {
-              type = "box"
-              orientation = "vertical"
-              class = "network-section"
-              
-              widgets = [
-                {
-                  type = "label"
-                  label = "Preferred Networks"
-                  class = "network-section-title"
-                }
-                {
-                  type = "label"
-                  label = "{{10000:leviathan-wifi-networks known}}"
-                  class = "network-list"
-                }
-              ]
+              type = "label"
+              label = "{{200:network-status speed}}"
+              class = "network-stats"
+              name = "network-speed"
             }
             {
-              type = "box"
-              orientation = "vertical"
-              class = "network-section"
-              
-              widgets = [
-                {
-                  type = "label"
-                  label = "Available Networks"
-                  class = "network-section-title"
-                }
-                {
-                  type = "label"
-                  label = "{{5000:leviathan-wifi-networks available}}"
-                  class = "network-list"
-                }
-              ]
+              type = "label"
+              label = "Preferred Networks"
+              class = "network-section-title"
+            }
+            {
+              type = "button"
+              label = "{{1200:network-status slot known 0}}"
+              class = "network-list-compact"
+              on_click_left = "leviathan-network-connect-known 0"
+            }
+            {
+              type = "button"
+              label = "{{1200:network-status slot known 1}}"
+              class = "network-list-compact"
+              on_click_left = "leviathan-network-connect-known 1"
+            }
+            {
+              type = "button"
+              label = "{{1200:network-status slot known 2}}"
+              class = "network-list-compact"
+              on_click_left = "leviathan-network-connect-known 2"
+            }
+            {
+              type = "button"
+              label = "{{1200:network-status slot known 3}}"
+              class = "network-list-compact"
+              on_click_left = "leviathan-network-connect-known 3"
+            }
+            {
+              type = "label"
+              label = "Available Networks"
+              class = "network-section-title"
+            }
+            {
+              type = "button"
+              label = "{{1500:network-status slot available 0}}"
+              class = "network-list-compact"
+              on_click_left = "leviathan-network-connect-available 0"
+            }
+            {
+              type = "button"
+              label = "{{1500:network-status slot available 1}}"
+              class = "network-list-compact"
+              on_click_left = "leviathan-network-connect-available 1"
+            }
+            {
+              type = "button"
+              label = "{{1500:network-status slot available 2}}"
+              class = "network-list-compact"
+              on_click_left = "leviathan-network-connect-available 2"
+            }
+            {
+              type = "button"
+              label = "{{1500:network-status slot available 3}}"
+              class = "network-list-compact"
+              on_click_left = "leviathan-network-connect-available 3"
+            }
+            {
+              type = "button"
+              label = "{{1500:network-status slot available 4}}"
+              class = "network-list-compact"
+              on_click_left = "leviathan-network-connect-available 4"
+            }
+            {
+              type = "button"
+              label = "{{1500:network-status slot available 5}}"
+              class = "network-list-compact"
+              on_click_left = "leviathan-network-connect-available 5"
             }
             {
               type = "button"
               label = "More Options"
               class = "network-options-btn"
-              on_click = "!nm-connection-editor"
+              on_click = "nm-connection-editor"
             }
           ]
         }

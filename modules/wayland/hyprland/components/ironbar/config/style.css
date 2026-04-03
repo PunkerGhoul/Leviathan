@@ -34,7 +34,6 @@
 #start,
 #center,
 #end {
-  spacing: 8px;
 }
 
 .widget {
@@ -210,58 +209,71 @@
   color: var(--purple);
 }
 
-/* Network Popup Styles */
+/* Network Popup Styles - Compact like macOS */
 .popup-custom#network {
-  min-width: 350px;
+  min-width: 280px;
 }
 
 .network-popup {
-  padding: 16px;
+  padding: 10px;
 }
 
 #network-title {
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--text);
-  margin-bottom: 12px;
+  margin-bottom: 2px;
 }
 
-#network-status {
+.network-status {
   background: var(--purple-soft);
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 12px;
-  font-size: 12px;
-  color: var(--text-muted);
+  padding: 8px;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  font-size: 11px;
+  color: var(--text);
+  line-height: 1.4;
 }
 
-.network-section {
-  margin-bottom: 12px;
+.network-stats {
+  background: rgba(98, 114, 164, 0.2);
+  padding: 6px;
+  border-radius: 4px;
+  margin-bottom: 6px;
+  font-size: 9px;
+  color: var(--text-muted);
+  line-height: 1.3;
 }
 
 .network-section-title {
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
+  letter-spacing: 0.4px;
+  margin-top: 3px;
+  margin-bottom: 2px;
 }
 
-.network-list {
-  font-size: 12px;
+.network-list-compact {
+  font-size: 10px;
   color: var(--text);
-  line-height: 1.6;
+  line-height: 1.3;
+  padding: 3px;
+  background: rgba(40, 42, 54, 0.5);
+  border: 1px solid rgba(189, 147, 249, 0.1);
+  border-radius: 4px;
+  margin-bottom: 6px;
 }
 
 .network-options-btn {
   background: linear-gradient(180deg, rgba(98, 114, 164, 0.22), rgba(68, 71, 90, 0.82));
   border: 1px solid rgba(189, 147, 249, 0.36);
-  border-radius: 8px;
+  border-radius: 6px;
   color: var(--text);
-  padding: 8px 12px;
-  font-size: 12px;
-  margin-top: 12px;
+  padding: 6px 10px;
+  font-size: 11px;
+  margin-top: 6px;
 }
 
 .network-options-btn:hover {
