@@ -11,7 +11,7 @@ pkgs.rustPlatform.buildRustPackage rec {
   };
 
   meta = with lib; {
-    description = "Fast network status utility for ironbar";
+    description = "Fast network status utility for quickshell";
     license = licenses.mit;
     platforms = platforms.linux;
   };

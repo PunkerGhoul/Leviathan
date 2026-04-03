@@ -9,7 +9,7 @@
     hyprshot
     wofi
     kitty
-    ironbar
+    quickshell
   ];
 
   # System tools
@@ -42,7 +42,7 @@
     hyprshot
     wofi
     kitty
-    ironbar
+    quickshell
 
     # System tools
     bluez

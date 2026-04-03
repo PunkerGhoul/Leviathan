@@ -28,11 +28,10 @@
       recursive = true;
     };
 
-    # Ironbar (barra de estado)
-    "ironbar/config.corn".source = ./components/ironbar/config/config.corn;
-    "ironbar/style.css".source = ./components/ironbar/config/style.css;
+    # Quickshell (barra de estado)
+    "quickshell/shell.qml".source = ./components/quickshell/config/shell.qml;
 
     # Scripts
-    "hypr/scripts/restart-ironbar.sh".source = ./components/ironbar/scripts/restart-ironbar.sh;
+    "hypr/scripts/restart-quickshell.sh".source = ./components/quickshell/scripts/restart-quickshell.sh;
   };
 }

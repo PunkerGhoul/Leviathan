@@ -5,8 +5,8 @@ let
     inherit config lib pkgs;
   };
 
-  ironbar = import ./ironbar {
+  quickshell = import ./quickshell {
     inherit lib pkgs;
   };
 in
-nixgl // ironbar
+nixgl // quickshell
