@@ -11,20 +11,114 @@ ShellRoot {
             id: panel
             required property var modelData
             property bool networkPopupOpen: false
+            property bool connectPromptOpen: false
+            property bool statusCollapsed: false
+            property bool preferredCollapsed: false
+            property bool availableCollapsed: false
+            property string selectedNetworkGroup: ""
+            property int selectedNetworkIndex: -1
+            property string selectedNetworkLabel: ""
+            property string selectedNetworkPassword: ""
+            property var knownEntries: []
+            property var availableEntries: []
+            property real popupWidth: 340
+            property real popupHeight: 560
+            property real popupPosX: 0
+            property real popupPosY: 0
+
+            function ensurePopupBounds() {
+                if (!panel.screen) {
+                    return
+                }
+
+                const minW = 320
+                const minH = 180
+                const maxW = Math.max(minW, panel.screen.width - 20)
+                const maxH = Math.max(minH, panel.screen.height - 20)
+
+                popupWidth = Math.max(minW, Math.min(maxW, popupWidth))
+                popupHeight = Math.max(minH, Math.min(maxH, popupHeight))
+
+                const minX = 10
+                const minY = 10
+                const maxX = Math.max(10, panel.screen.width - popupWidth - 10)
+                const maxY = Math.max(10, panel.screen.height - popupHeight - 10)
+
+                popupPosX = Math.max(minX, Math.min(maxX, popupPosX))
+                popupPosY = Math.max(minY, Math.min(maxY, popupPosY))
+            }
+
+            function shellEscape(value) {
+                return value
+                    .replace(/\\/g, "\\\\")
+                    .replace(/"/g, "\\\"")
+                    .replace(/\$/g, "\\$")
+                    .replace(/`/g, "\\`")
+            }
+
+            function promptConnection(group, index, label) {
+                selectedNetworkGroup = group
+                selectedNetworkIndex = index
+                selectedNetworkLabel = label
+                selectedNetworkPassword = ""
+                connectPromptOpen = true
+            }
+
+            function cancelConnectionPrompt() {
+                connectPromptOpen = false
+                selectedNetworkGroup = ""
+                selectedNetworkIndex = -1
+                selectedNetworkLabel = ""
+                selectedNetworkPassword = ""
+            }
+
+            function confirmConnection() {
+                if (selectedNetworkGroup === "" || selectedNetworkIndex < 0) {
+                    return
+                }
+
+                const passwordPart = selectedNetworkPassword.length > 0
+                    ? " \"" + shellEscape(selectedNetworkPassword) + "\""
+                    : ""
+
+                networkConnectProc.command = [
+                    "sh",
+                    "-lc",
+                    "leviathan-network-connect-ui " + selectedNetworkGroup + " " + selectedNetworkIndex + passwordPart
+                ]
+                networkConnectProc.running = true
+                cancelConnectionPrompt()
+                panel.refreshNetworkPopup()
+            }
 
             function refreshNetworkPopup() {
                 networkConnectedProc.running = true
                 networkSpeedProc.running = true
-                networkKnown0Proc.running = true
-                networkKnown1Proc.running = true
-                networkKnown2Proc.running = true
-                networkKnown3Proc.running = true
-                networkAvail0Proc.running = true
-                networkAvail1Proc.running = true
-                networkAvail2Proc.running = true
-                networkAvail3Proc.running = true
-                networkAvail4Proc.running = true
-                networkAvail5Proc.running = true
+                networkKnownListProc.running = true
+                networkAvailableListProc.running = true
+            }
+
+            function positionPopupUnderNetworkButton() {
+                if (!panel.screen) {
+                    return
+                }
+
+                const pos = panel.itemPosition(networkStatusButton)
+
+                const minW = 320
+                const preferredW = Math.round(panel.screen.width * 0.34)
+                const maxW = Math.max(minW, panel.screen.width - 20)
+                popupWidth = Math.max(minW, Math.min(maxW, Math.min(520, preferredW)))
+
+                popupPosY = pos.y + networkStatusButton.height + 8
+
+                const availableBelow = panel.screen.height - popupPosY - 10
+                const minH = 180
+                const preferredH = Math.round(panel.screen.height * 0.72)
+                popupHeight = Math.max(minH, Math.min(Math.max(minH, availableBelow), preferredH))
+
+                popupPosX = pos.x + networkStatusButton.width - popupWidth
+                ensurePopupBounds()
             }
 
             screen: modelData
@@ -68,6 +162,7 @@ ShellRoot {
                 MouseArea {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
+                    preventStealing: true
                     onClicked: parent.clicked()
                 }
             }
@@ -101,6 +196,7 @@ ShellRoot {
 
             component NetworkRow: Rectangle {
                 property alias text: label.text
+                property int networkIndex: -1
                 signal clicked
 
                 radius: 8
@@ -109,6 +205,8 @@ ShellRoot {
                 color: "#30374a"
                 Layout.fillWidth: true
                 Layout.preferredHeight: 32
+                implicitHeight: 32
+                height: 32
 
                 Text {
                     id: label
@@ -225,12 +323,13 @@ ShellRoot {
                         }
 
                         StatusPill {
+                            id: networkStatusButton
                             text: networkText.text
                             onClicked: {
                                 panel.networkPopupOpen = !panel.networkPopupOpen
                                 if (panel.networkPopupOpen) {
-                                    networkResetProc.running = true
                                     panel.refreshNetworkPopup()
+                                    panel.positionPopupUnderNetworkButton()
                                 }
                             }
                         }
@@ -481,6 +580,30 @@ ShellRoot {
             }
 
             Process {
+                id: networkKnownListProc
+                command: ["sh", "-lc", "network-status known"]
+                running: true
+                stdout: StdioCollector {
+                    onStreamFinished: {
+                        const value = this.text.trim();
+                        panel.knownEntries = value.length > 0 ? value.split("\n") : [];
+                    }
+                }
+            }
+
+            Process {
+                id: networkAvailableListProc
+                command: ["sh", "-lc", "network-status available"]
+                running: true
+                stdout: StdioCollector {
+                    onStreamFinished: {
+                        const value = this.text.trim();
+                        panel.availableEntries = value.length > 0 ? value.split("\n") : [];
+                    }
+                }
+            }
+
+            Process {
                 id: networkKnown0Proc
                 command: ["sh", "-lc", "leviathan-network-slot-ui known 0"]
                 running: true
@@ -624,23 +747,17 @@ ShellRoot {
                 active: panel.networkPopupOpen
                 loading: panel.networkPopupOpen
 
-                PanelWindow {
+                PopupWindow {
                     id: networkPopup
-                    screen: panel.screen
+                    visible: panel.networkPopupOpen
                     color: "transparent"
-                    width: 340
-                    height: Math.min(620, popupColumn.implicitHeight + 24)
-                    exclusiveZone: 0
+                    anchor.window: panel
+                    anchor.rect.x: panel.popupPosX
+                    anchor.rect.y: panel.popupPosY
+                    width: panel.popupWidth
+                    height: panel.popupHeight
 
-                    anchors {
-                        top: true
-                        right: true
-                    }
-
-                    margins {
-                        top: 74
-                        right: 10
-                    }
+                    Component.onCompleted: panel.ensurePopupBounds()
 
                     Rectangle {
                         id: popupBody
@@ -658,6 +775,7 @@ ShellRoot {
 
                             RowLayout {
                                 Layout.fillWidth: true
+                                id: popupTitleBar
 
                                 Text {
                                     text: "Network"
@@ -669,6 +787,7 @@ ShellRoot {
                                 Item { Layout.fillWidth: true }
 
                                 QuickButton {
+                                    id: closePopupButton
                                     text: "󰅖"
                                     onClicked: panel.networkPopupOpen = false
                                 }
@@ -676,182 +795,277 @@ ShellRoot {
 
                             Rectangle {
                                 Layout.fillWidth: true
-                                Layout.preferredHeight: 52
                                 radius: 10
-                                color: "#323a4f"
                                 border.width: 1
                                 border.color: "#59617e"
+                                color: "#323a4f"
+                                implicitHeight: panel.statusCollapsed ? 38 : 78
 
                                 Column {
                                     anchors.fill: parent
                                     anchors.margins: 8
-                                    spacing: 2
+                                    spacing: 6
 
-                                    Text {
-                                        text: networkConnectedText.text
-                                        color: "#f1f5fd"
-                                        font.pixelSize: 12
-                                        font.family: "Maple Mono NF"
-                                        elide: Text.ElideRight
+                                    Rectangle {
+                                        width: parent.width
+                                        height: 22
+                                        color: "transparent"
+
+                                        Row {
+                                            anchors.fill: parent
+                                            spacing: 6
+
+                                            Text {
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                text: panel.statusCollapsed ? "▸" : "▾"
+                                                color: "#b9c3de"
+                                                font.pixelSize: 12
+                                            }
+
+                                            Text {
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                text: "Connection Status"
+                                                color: "#b9c3de"
+                                                font.pixelSize: 11
+                                                font.family: "Maple Mono NF"
+                                            }
+                                        }
+
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: panel.statusCollapsed = !panel.statusCollapsed
+                                        }
                                     }
 
-                                    Text {
-                                        text: networkSpeedText.text
-                                        color: "#b9c3de"
-                                        font.pixelSize: 11
-                                        font.family: "Maple Mono NF"
-                                        elide: Text.ElideRight
+                                    Column {
+                                        id: statusDetails
+                                        visible: !panel.statusCollapsed
+                                        spacing: 2
+                                        width: parent.width
+                                        clip: true
+
+                                        Text {
+                                            text: networkConnectedText.text
+                                            color: "#f1f5fd"
+                                            font.pixelSize: 12
+                                            font.family: "Maple Mono NF"
+                                            wrapMode: Text.NoWrap
+                                            maximumLineCount: 1
+                                            elide: Text.ElideRight
+                                            width: statusDetails.width
+                                        }
+
+                                        Text {
+                                            text: networkSpeedText.text
+                                            color: "#b9c3de"
+                                            font.pixelSize: 11
+                                            font.family: "Maple Mono NF"
+                                            wrapMode: Text.NoWrap
+                                            maximumLineCount: 1
+                                            elide: Text.ElideRight
+                                            width: statusDetails.width
+                                        }
                                     }
                                 }
                             }
 
-                            Text {
-                                text: "Preferred Networks"
-                                color: "#b9c3de"
-                                font.pixelSize: 11
-                                font.family: "Maple Mono NF"
-                            }
-
-                            RowLayout {
+                            Rectangle {
                                 Layout.fillWidth: true
-                                spacing: 6
+                                Layout.maximumHeight: panel.preferredCollapsed ? 38 : 220
+                                radius: 10
+                                border.width: 1
+                                border.color: "#59617e"
+                                color: "#323a4f"
+                                implicitHeight: panel.preferredCollapsed ? 38 : preferredHeader.height + knownFlick.height + 20
+                                clip: true
 
-                                QuickButton {
-                                    text: "▲"
-                                    onClicked: {
-                                        networkScrollProc.command = ["sh", "-lc", "leviathan-network-scroll known up 4"]
-                                        networkScrollProc.running = true
-                                        panel.refreshNetworkPopup()
+                                Column {
+                                    anchors.fill: parent
+                                    anchors.margins: 8
+                                    spacing: 6
+
+                                    Rectangle {
+                                        id: preferredHeader
+                                        width: parent.width
+                                        height: 22
+                                        color: "transparent"
+
+                                        Row {
+                                            anchors.fill: parent
+                                            spacing: 6
+
+                                            Text {
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                text: panel.preferredCollapsed ? "▸" : "▾"
+                                                color: "#b9c3de"
+                                                font.pixelSize: 12
+                                            }
+
+                                            Text {
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                text: "Preferred Networks"
+                                                color: "#b9c3de"
+                                                font.pixelSize: 11
+                                                font.family: "Maple Mono NF"
+                                            }
+                                        }
+
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: panel.preferredCollapsed = !panel.preferredCollapsed
+                                        }
+                                    }
+
+                                    Flickable {
+                                        id: knownFlick
+                                        visible: !panel.preferredCollapsed
+                                        width: parent.width
+                                        height: panel.preferredCollapsed
+                                            ? 0
+                                            : Math.min(knownColumn.implicitHeight, 160)
+                                        clip: true
+                                        contentWidth: width
+                                        contentHeight: knownColumn.implicitHeight
+                                        interactive: contentHeight > height
+
+                                        WheelHandler {
+                                            target: knownFlick
+                                            onWheel: function(event) {
+                                                const maxY = Math.max(0, knownFlick.contentHeight - knownFlick.height)
+                                                knownFlick.contentY = Math.max(0, Math.min(maxY, knownFlick.contentY - event.angleDelta.y))
+                                                event.accepted = true
+                                            }
+                                        }
+
+                                        Column {
+                                            id: knownColumn
+                                            width: knownFlick.width
+                                            spacing: 6
+
+                                            Repeater {
+                                                model: panel.knownEntries
+
+                                                NetworkRow {
+                                                    width: knownColumn.width
+                                                    networkIndex: index
+                                                    text: modelData
+                                                    visible: text !== "-" && text.length > 0
+                                                    enabled: true
+                                                    onClicked: panel.promptConnection("known", networkIndex, modelData)
+                                                }
+                                            }
+
+                                            Text {
+                                                visible: panel.knownEntries.length === 0
+                                                text: "No preferred networks in range"
+                                                color: "#aeb9d6"
+                                                font.pixelSize: 11
+                                                font.family: "Maple Mono NF"
+                                            }
+                                        }
                                     }
                                 }
-
-                                QuickButton {
-                                    text: "▼"
-                                    onClicked: {
-                                        networkScrollProc.command = ["sh", "-lc", "leviathan-network-scroll known down 4"]
-                                        networkScrollProc.running = true
-                                        panel.refreshNetworkPopup()
-                                    }
-                                }
                             }
 
-                            NetworkRow {
-                                text: known0Text.text
-                                onClicked: {
-                                    networkConnectProc.command = ["sh", "-lc", "leviathan-network-connect-ui known 0"]
-                                    networkConnectProc.running = true
-                                    panel.refreshNetworkPopup()
-                                }
-                            }
-
-                            NetworkRow {
-                                text: known1Text.text
-                                onClicked: {
-                                    networkConnectProc.command = ["sh", "-lc", "leviathan-network-connect-ui known 1"]
-                                    networkConnectProc.running = true
-                                    panel.refreshNetworkPopup()
-                                }
-                            }
-
-                            NetworkRow {
-                                text: known2Text.text
-                                onClicked: {
-                                    networkConnectProc.command = ["sh", "-lc", "leviathan-network-connect-ui known 2"]
-                                    networkConnectProc.running = true
-                                    panel.refreshNetworkPopup()
-                                }
-                            }
-
-                            NetworkRow {
-                                text: known3Text.text
-                                onClicked: {
-                                    networkConnectProc.command = ["sh", "-lc", "leviathan-network-connect-ui known 3"]
-                                    networkConnectProc.running = true
-                                    panel.refreshNetworkPopup()
-                                }
-                            }
-
-                            Text {
-                                text: "Available Networks"
-                                color: "#b9c3de"
-                                font.pixelSize: 11
-                                font.family: "Maple Mono NF"
-                            }
-
-                            RowLayout {
+                            Rectangle {
                                 Layout.fillWidth: true
-                                spacing: 6
+                                Layout.fillHeight: true
+                                Layout.minimumHeight: panel.availableCollapsed ? 38 : 160
+                                radius: 10
+                                border.width: 1
+                                border.color: "#59617e"
+                                color: "#323a4f"
+                                implicitHeight: panel.availableCollapsed ? 38 : 200
+                                clip: true
 
-                                QuickButton {
-                                    text: "▲"
-                                    onClicked: {
-                                        networkScrollProc.command = ["sh", "-lc", "leviathan-network-scroll available up 6"]
-                                        networkScrollProc.running = true
-                                        panel.refreshNetworkPopup()
+                                Column {
+                                    anchors.fill: parent
+                                    anchors.margins: 8
+                                    spacing: 6
+
+                                    Rectangle {
+                                        id: availableHeader
+                                        width: parent.width
+                                        height: 22
+                                        color: "transparent"
+
+                                        Row {
+                                            anchors.fill: parent
+                                            spacing: 6
+
+                                            Text {
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                text: panel.availableCollapsed ? "▸" : "▾"
+                                                color: "#b9c3de"
+                                                font.pixelSize: 12
+                                            }
+
+                                            Text {
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                text: "Available Networks"
+                                                color: "#b9c3de"
+                                                font.pixelSize: 11
+                                                font.family: "Maple Mono NF"
+                                            }
+                                        }
+
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: panel.availableCollapsed = !panel.availableCollapsed
+                                        }
                                     }
-                                }
 
-                                QuickButton {
-                                    text: "▼"
-                                    onClicked: {
-                                        networkScrollProc.command = ["sh", "-lc", "leviathan-network-scroll available down 6"]
-                                        networkScrollProc.running = true
-                                        panel.refreshNetworkPopup()
+                                    Flickable {
+                                        id: availableFlick
+                                        visible: !panel.availableCollapsed
+                                        width: parent.width
+                                        height: panel.availableCollapsed
+                                            ? 0
+                                            : Math.max(80, parent.height - availableHeader.height - 8)
+                                        clip: true
+                                        contentWidth: width
+                                        contentHeight: availableColumn.implicitHeight
+                                        interactive: contentHeight > height
+
+                                        WheelHandler {
+                                            target: availableFlick
+                                            onWheel: function(event) {
+                                                const maxY = Math.max(0, availableFlick.contentHeight - availableFlick.height)
+                                                availableFlick.contentY = Math.max(0, Math.min(maxY, availableFlick.contentY - event.angleDelta.y))
+                                                event.accepted = true
+                                            }
+                                        }
+
+                                        Column {
+                                            id: availableColumn
+                                            width: availableFlick.width
+                                            spacing: 6
+
+                                            Repeater {
+                                                model: panel.availableEntries
+
+                                                NetworkRow {
+                                                    width: availableColumn.width
+                                                    networkIndex: index
+                                                    text: modelData
+                                                    visible: text !== "-" && text.length > 0
+                                                    enabled: true
+                                                    onClicked: panel.promptConnection("available", networkIndex, modelData)
+                                                }
+                                            }
+
+                                            Text {
+                                                visible: panel.availableEntries.length === 0
+                                                text: "No available networks found"
+                                                color: "#aeb9d6"
+                                                font.pixelSize: 11
+                                                font.family: "Maple Mono NF"
+                                            }
+                                        }
                                     }
-                                }
-                            }
-
-                            NetworkRow {
-                                text: avail0Text.text
-                                onClicked: {
-                                    networkConnectProc.command = ["sh", "-lc", "leviathan-network-connect-ui available 0"]
-                                    networkConnectProc.running = true
-                                    panel.refreshNetworkPopup()
-                                }
-                            }
-
-                            NetworkRow {
-                                text: avail1Text.text
-                                onClicked: {
-                                    networkConnectProc.command = ["sh", "-lc", "leviathan-network-connect-ui available 1"]
-                                    networkConnectProc.running = true
-                                    panel.refreshNetworkPopup()
-                                }
-                            }
-
-                            NetworkRow {
-                                text: avail2Text.text
-                                onClicked: {
-                                    networkConnectProc.command = ["sh", "-lc", "leviathan-network-connect-ui available 2"]
-                                    networkConnectProc.running = true
-                                    panel.refreshNetworkPopup()
-                                }
-                            }
-
-                            NetworkRow {
-                                text: avail3Text.text
-                                onClicked: {
-                                    networkConnectProc.command = ["sh", "-lc", "leviathan-network-connect-ui available 3"]
-                                    networkConnectProc.running = true
-                                    panel.refreshNetworkPopup()
-                                }
-                            }
-
-                            NetworkRow {
-                                text: avail4Text.text
-                                onClicked: {
-                                    networkConnectProc.command = ["sh", "-lc", "leviathan-network-connect-ui available 4"]
-                                    networkConnectProc.running = true
-                                    panel.refreshNetworkPopup()
-                                }
-                            }
-
-                            NetworkRow {
-                                text: avail5Text.text
-                                onClicked: {
-                                    networkConnectProc.command = ["sh", "-lc", "leviathan-network-connect-ui available 5"]
-                                    networkConnectProc.running = true
-                                    panel.refreshNetworkPopup()
                                 }
                             }
 
@@ -859,6 +1073,91 @@ ShellRoot {
                                 Layout.alignment: Qt.AlignHCenter
                                 text: "More Options"
                                 onClicked: networkMoreProc.running = true
+                            }
+                        }
+
+                        Rectangle {
+                            anchors.fill: parent
+                            visible: panel.connectPromptOpen
+                            color: "#80161b27"
+                            radius: 14
+                            z: 50
+
+                            Rectangle {
+                                width: Math.min(parent.width - 24, 300)
+                                anchors.centerIn: parent
+                                radius: 10
+                                border.width: 1
+                                border.color: "#7a84ac"
+                                color: "#2d3447"
+                                implicitHeight: confirmColumn.implicitHeight + 16
+
+                                ColumnLayout {
+                                    id: confirmColumn
+                                    anchors.fill: parent
+                                    anchors.margins: 8
+                                    spacing: 8
+
+                                    Text {
+                                        Layout.fillWidth: true
+                                        text: "Connect to: " + panel.selectedNetworkLabel
+                                        color: "#f1f5fd"
+                                        font.pixelSize: 12
+                                        font.family: "Maple Mono NF"
+                                        elide: Text.ElideRight
+                                    }
+
+                                    Rectangle {
+                                        Layout.fillWidth: true
+                                        Layout.preferredHeight: 34
+                                        radius: 8
+                                        border.width: 1
+                                        border.color: "#59617e"
+                                        color: "#1f2534"
+
+                                        TextInput {
+                                            anchors.fill: parent
+                                            anchors.leftMargin: 10
+                                            anchors.rightMargin: 10
+                                            color: "#f1f5fd"
+                                            font.pixelSize: 12
+                                            font.family: "Maple Mono NF"
+                                            echoMode: TextInput.Password
+                                            text: panel.selectedNetworkPassword
+                                            onTextChanged: panel.selectedNetworkPassword = text
+                                        }
+                                    }
+
+                                    Text {
+                                        Layout.fillWidth: true
+                                        text: "Password optional for known networks"
+                                        color: "#aeb9d6"
+                                        font.pixelSize: 10
+                                        font.family: "Maple Mono NF"
+                                    }
+
+                                    RowLayout {
+                                        Layout.fillWidth: true
+
+                                        StatusPill {
+                                            text: "Cancel"
+                                            onClicked: panel.cancelConnectionPrompt()
+                                        }
+
+                                        Item { Layout.fillWidth: true }
+
+                                        StatusPill {
+                                            warning: true
+                                            text: "Connect"
+                                            onClicked: panel.confirmConnection()
+                                        }
+                                    }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    acceptedButtons: Qt.NoButton
+                                }
                             }
                         }
                     }

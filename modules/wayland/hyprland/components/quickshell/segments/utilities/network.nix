@@ -23,6 +23,7 @@ let
   networkConnectUiScript = pkgs.writeShellScriptBin "leviathan-network-connect-ui" ''
     group="''${1:-available}"
     ui_index="''${2:-0}"
+    password="''${3:-}"
     offset_dir="''${XDG_CACHE_HOME:-$HOME/.cache}/leviathan"
 
     case "$group" in
@@ -43,7 +44,16 @@ let
       exit 0
     fi
 
-    ${pkgs.networkmanager}/bin/nmcli dev wifi connect "$ssid" >/dev/null 2>&1 || true
+    if [ "$group" = "known" ]; then
+      ${pkgs.networkmanager}/bin/nmcli connection up id "$ssid" >/dev/null 2>&1 || true
+      exit 0
+    fi
+
+    if [ -n "$password" ]; then
+      ${pkgs.networkmanager}/bin/nmcli dev wifi connect "$ssid" password "$password" >/dev/null 2>&1 || true
+    else
+      ${pkgs.networkmanager}/bin/nmcli dev wifi connect "$ssid" >/dev/null 2>&1 || true
+    fi
   '';
 
   networkScrollScript = pkgs.writeShellScriptBin "leviathan-network-scroll" ''

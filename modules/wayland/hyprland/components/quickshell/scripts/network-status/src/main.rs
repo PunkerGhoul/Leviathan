@@ -27,15 +27,16 @@ fn main() {
 fn show_connected() {
     let ssid = get_ssid();
     let signal = get_signal();
-    let (down, up) = get_stats();
+    let ip = get_ipv4();
 
     if ssid.is_empty() {
         println!("Not connected");
         return;
     }
 
-    println!("{} {}", signal_icon(signal), ssid);
-    println!("Down: {} MB | Up: {} MB | Quality: {}%", down, up, signal);
+    let ip_part = if ip.is_empty() { "No IP".to_string() } else { ip };
+    println!("{} {} - {}", signal_icon(signal), ssid, ip_part);
+    println!("Quality: {}%", signal);
 }
 
 fn show_icon() {
@@ -44,10 +45,10 @@ fn show_icon() {
 
 fn signal_icon(signal: i32) -> &'static str {
     match signal {
-            75..=100 => "󰤟",
-            50..=74 => "󰤢",
-            25..=49 => "󰤥",
-            _ => "󰤨",
+            75..=100 => "󰤨",
+            50..=74 => "󰤥",
+            25..=49 => "󰤢",
+            _ => "󰤟",
     }
 }
 
@@ -206,44 +207,51 @@ fn get_signal() -> i32 {
         .unwrap_or(0)
 }
 
-fn get_stats() -> (String, String) {
-    let iface = get_active_interface();
-    if iface.is_empty() {
-        return ("0".to_string(), "0".to_string());
-    }
-
-    let rx_path = format!("/sys/class/net/{}/statistics/rx_bytes", iface);
-    let tx_path = format!("/sys/class/net/{}/statistics/tx_bytes", iface);
-
-    let rx_mb = match fs::read_to_string(&rx_path) {
-        Ok(content) => {
-            let bytes: u64 = content.trim().parse().unwrap_or(0);
-            format!("{:.1}", bytes as f64 / 1024.0 / 1024.0)
-        }
-        Err(_) => "0".to_string(),
-    };
-
-    let tx_mb = match fs::read_to_string(&tx_path) {
-        Ok(content) => {
-            let bytes: u64 = content.trim().parse().unwrap_or(0);
-            format!("{:.1}", bytes as f64 / 1024.0 / 1024.0)
-        }
-        Err(_) => "0".to_string(),
-    };
-
-    (rx_mb, tx_mb)
-}
-
 fn read_bytes(path: &str) -> Option<u64> {
     fs::read_to_string(path).ok()?.trim().parse().ok()
+}
+
+fn get_ipv4() -> String {
+    let iface = get_active_interface();
+    if iface.is_empty() {
+        return String::new();
+    }
+
+    let output = Command::new("ip")
+        .args(["-o", "-4", "addr", "show", "dev", &iface, "scope", "global"])
+        .output();
+
+    let Ok(output) = output else {
+        return String::new();
+    };
+
+    if !output.status.success() {
+        return String::new();
+    }
+
+    let text = String::from_utf8_lossy(&output.stdout);
+    for line in text.lines() {
+        let mut parts = line.split_whitespace();
+        while let Some(part) = parts.next() {
+            if part == "inet" {
+                if let Some(cidr) = parts.next() {
+                    return cidr.split('/').next().unwrap_or("").to_string();
+                }
+            }
+        }
+    }
+
+    String::new()
 }
 
 fn show_live_speed() {
     let iface = get_active_interface();
     if iface.is_empty() {
-        println!("N/A");
+        println!("Quality: 0% - ↑ 0.00 MB/s / ↓ 0.00 MB/s");
         return;
     }
+
+    let signal = get_signal();
 
     let rx_path = format!("/sys/class/net/{}/statistics/rx_bytes", iface);
     let tx_path = format!("/sys/class/net/{}/statistics/tx_bytes", iface);
@@ -259,7 +267,7 @@ fn show_live_speed() {
     let rx_speed = (rx2.saturating_sub(rx1) as f64 / 1024.0 / 1024.0) * 2.0;
     let tx_speed = (tx2.saturating_sub(tx1) as f64 / 1024.0 / 1024.0) * 2.0;
 
-    println!("Down: {:.2} MB/s | Up: {:.2} MB/s", rx_speed, tx_speed);
+    println!("Quality: {}% - ↑ {:.2} MB/s / ↓ {:.2} MB/s", signal, tx_speed, rx_speed);
 }
 
 fn get_available_networks() -> HashMap<String, i32> {
@@ -434,13 +442,13 @@ fn show_ssid_for_slot(args: &[String]) {
 }
 
 fn show_known_networks() {
-    for (ssid, signal) in sorted_known_networks_in_range().iter().take(10) {
+    for (ssid, signal) in sorted_known_networks_in_range().iter() {
         println!("{} {} ({}%)", signal_icon(*signal), ssid, signal);
     }
 }
 
 fn show_available_networks() {
-    for (ssid, signal) in sorted_available_networks().iter().take(15) {
+    for (ssid, signal) in sorted_available_networks().iter() {
         println!("{} {} ({}%)", signal_icon(*signal), ssid, signal);
     }
 }
