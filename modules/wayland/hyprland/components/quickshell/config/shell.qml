@@ -94,8 +94,27 @@ ShellRoot {
             function refreshNetworkPopup() {
                 networkConnectedProc.running = true
                 networkSpeedProc.running = true
+            }
+
+            function refreshNetworkPopupHeavy() {
                 networkKnownListProc.running = true
                 networkAvailableListProc.running = true
+            }
+
+            function requestNetworkCacheScan(force) {
+                networkCacheScanProc.command = [
+                    "sh",
+                    "-lc",
+                    force ? "network-status scan-cache force" : "network-status scan-cache"
+                ]
+                networkCacheScanProc.running = true
+            }
+
+            function launchNow(proc) {
+                proc.running = false
+                Qt.callLater(function() {
+                    proc.running = true
+                })
             }
 
             function positionPopupUnderNetworkButton() {
@@ -113,11 +132,22 @@ ShellRoot {
                 popupPosY = pos.y + networkStatusButton.height + 8
 
                 const availableBelow = panel.screen.height - popupPosY - 10
-                const minH = 180
-                const preferredH = Math.round(panel.screen.height * 0.72)
-                popupHeight = Math.max(minH, Math.min(Math.max(minH, availableBelow), preferredH))
+                const minH = 120
+                const maxH = Math.max(minH, availableBelow)
+                popupHeight = Math.max(minH, Math.min(maxH, popupHeight))
 
                 popupPosX = pos.x + networkStatusButton.width - popupWidth
+                ensurePopupBounds()
+            }
+
+            function fitPopupHeightToContent(contentHeight) {
+                if (!panel.screen) {
+                    return
+                }
+
+                const minH = 120
+                const maxH = Math.max(minH, panel.screen.height - popupPosY - 10)
+                popupHeight = Math.max(minH, Math.min(maxH, contentHeight))
                 ensurePopupBounds()
             }
 
@@ -161,9 +191,14 @@ ShellRoot {
 
                 MouseArea {
                     anchors.fill: parent
+                    hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
+                    acceptedButtons: Qt.LeftButton
                     preventStealing: true
-                    onClicked: parent.clicked()
+                    onPressed: function(mouse) {
+                        parent.clicked()
+                        mouse.accepted = false
+                    }
                 }
             }
 
@@ -189,6 +224,7 @@ ShellRoot {
 
                 MouseArea {
                     anchors.fill: parent
+                    hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onClicked: parent.clicked()
                 }
@@ -223,6 +259,7 @@ ShellRoot {
 
                 MouseArea {
                     anchors.fill: parent
+                    hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
                     onClicked: parent.clicked()
                 }
@@ -252,37 +289,37 @@ ShellRoot {
                         QuickButton {
                             text: "󰣇"
                             accent: true
-                            onClicked: launchProc.running = true
+                            onClicked: panel.launchNow(launchProc)
                         }
 
                         QuickButton {
                             text: "󰆍"
-                            onClicked: terminalProc.running = true
+                            onClicked: panel.launchNow(terminalProc)
                         }
 
                         QuickButton {
                             text: "󰉋"
-                            onClicked: filesProc.running = true
+                            onClicked: panel.launchNow(filesProc)
                         }
 
                         QuickButton {
                             text: "󰖟"
-                            onClicked: browserProc.running = true
+                            onClicked: panel.launchNow(browserProc)
                         }
 
                         QuickButton {
                             text: "󰸉"
-                            onClicked: wallpaperProc.running = true
+                            onClicked: panel.launchNow(wallpaperProc)
                         }
 
                         QuickButton {
                             text: "󰄀"
-                            onClicked: screenshotProc.running = true
+                            onClicked: panel.launchNow(screenshotProc)
                         }
 
                         QuickButton {
                             text: "󰒓"
-                            onClicked: settingsProc.running = true
+                            onClicked: panel.launchNow(settingsProc)
                         }
                     }
 
@@ -329,6 +366,8 @@ ShellRoot {
                                 panel.networkPopupOpen = !panel.networkPopupOpen
                                 if (panel.networkPopupOpen) {
                                     panel.refreshNetworkPopup()
+                                    panel.refreshNetworkPopupHeavy()
+                                    panel.requestNetworkCacheScan(false)
                                     panel.positionPopupUnderNetworkButton()
                                 }
                             }
@@ -336,6 +375,7 @@ ShellRoot {
 
                         StatusPill {
                             text: bluetoothText.text
+                            onClicked: bluetoothOpenProc.running = true
                         }
 
                         StatusPill {
@@ -359,19 +399,25 @@ ShellRoot {
 
             Process {
                 id: terminalProc
-                command: ["sh", "-lc", "kitty"]
+                command: ["sh", "-lc", "setsid -f kitty >/dev/null 2>&1"]
                 running: false
             }
 
             Process {
                 id: filesProc
-                command: ["sh", "-lc", "thunar"]
+                command: ["sh", "-lc", "setsid -f thunar >/dev/null 2>&1"]
+                running: false
+            }
+
+            Process {
+                id: bluetoothOpenProc
+                command: ["sh", "-lc", "setsid -f blueman-manager >/dev/null 2>&1 || setsid -f blueberry >/dev/null 2>&1"]
                 running: false
             }
 
             Process {
                 id: browserProc
-                command: ["sh", "-lc", "librewolf"]
+                command: ["sh", "-lc", "setsid -f librewolf >/dev/null 2>&1"]
                 running: false
             }
 
@@ -604,6 +650,20 @@ ShellRoot {
             }
 
             Process {
+                id: networkCacheScanProc
+                command: ["sh", "-lc", "network-status scan-cache"]
+                running: false
+                stdout: StdioCollector {
+                    onStreamFinished: {
+                        const result = this.text.trim();
+                        if (result === "changed") {
+                            panel.refreshNetworkPopupHeavy();
+                        }
+                    }
+                }
+            }
+
+            Process {
                 id: networkKnown0Proc
                 command: ["sh", "-lc", "leviathan-network-slot-ui known 0"]
                 running: true
@@ -743,6 +803,13 @@ ShellRoot {
                 onTriggered: panel.refreshNetworkPopup()
             }
 
+            Timer {
+                interval: 5000
+                repeat: true
+                running: panel.networkPopupOpen
+                onTriggered: panel.requestNetworkCacheScan(false)
+            }
+
             LazyLoader {
                 active: panel.networkPopupOpen
                 loading: panel.networkPopupOpen
@@ -757,7 +824,12 @@ ShellRoot {
                     width: panel.popupWidth
                     height: panel.popupHeight
 
-                    Component.onCompleted: panel.ensurePopupBounds()
+                    Component.onCompleted: {
+                        panel.ensurePopupBounds()
+                        Qt.callLater(function() {
+                            panel.fitPopupHeightToContent(popupColumn.implicitHeight + 24)
+                        })
+                    }
 
                     Rectangle {
                         id: popupBody
@@ -772,6 +844,7 @@ ShellRoot {
                             anchors.fill: parent
                             anchors.margins: 12
                             spacing: 8
+                            onImplicitHeightChanged: panel.fitPopupHeightToContent(implicitHeight + 24)
 
                             RowLayout {
                                 Layout.fillWidth: true
@@ -971,8 +1044,8 @@ ShellRoot {
 
                             Rectangle {
                                 Layout.fillWidth: true
-                                Layout.fillHeight: true
                                 Layout.minimumHeight: panel.availableCollapsed ? 38 : 160
+                                Layout.maximumHeight: panel.availableCollapsed ? 38 : 100000
                                 radius: 10
                                 border.width: 1
                                 border.color: "#59617e"
@@ -991,28 +1064,61 @@ ShellRoot {
                                         height: 22
                                         color: "transparent"
 
-                                        Row {
+                                        RowLayout {
                                             anchors.fill: parent
                                             spacing: 6
 
                                             Text {
-                                                anchors.verticalCenter: parent.verticalCenter
+                                                Layout.alignment: Qt.AlignVCenter
                                                 text: panel.availableCollapsed ? "▸" : "▾"
                                                 color: "#b9c3de"
                                                 font.pixelSize: 12
                                             }
 
                                             Text {
-                                                anchors.verticalCenter: parent.verticalCenter
-                                                text: "Available Networks"
+                                                Layout.alignment: Qt.AlignVCenter
+                                                text: "Available Networks (" + panel.availableEntries.length + ")"
                                                 color: "#b9c3de"
                                                 font.pixelSize: 11
                                                 font.family: "Maple Mono NF"
                                             }
+
+                                            Item {
+                                                Layout.fillWidth: true
+                                            }
+
+                                            Rectangle {
+                                                id: availableRefreshButton
+                                                width: 22
+                                                height: 22
+                                                radius: 6
+                                                border.width: 1
+                                                border.color: "#59617e"
+                                                color: "#2f374b"
+                                                Layout.alignment: Qt.AlignVCenter
+
+                                                Text {
+                                                    anchors.centerIn: parent
+                                                    text: "󰑐"
+                                                    color: "#d7def3"
+                                                    font.pixelSize: 12
+                                                    font.family: "Symbols Nerd Font"
+                                                }
+
+                                                MouseArea {
+                                                    anchors.fill: parent
+                                                    cursorShape: Qt.PointingHandCursor
+                                                    onClicked: panel.requestNetworkCacheScan(true)
+                                                }
+                                            }
                                         }
 
                                         MouseArea {
-                                            anchors.fill: parent
+                                            anchors.left: parent.left
+                                            anchors.top: parent.top
+                                            anchors.bottom: parent.bottom
+                                            anchors.right: parent.right
+                                            anchors.rightMargin: 30
                                             cursorShape: Qt.PointingHandCursor
                                             onClicked: panel.availableCollapsed = !panel.availableCollapsed
                                         }

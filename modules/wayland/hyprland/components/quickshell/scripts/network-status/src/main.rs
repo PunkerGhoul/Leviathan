@@ -1,14 +1,22 @@
 use std::collections::{HashMap, HashSet};
+use std::env;
 use std::fs;
+use std::path::PathBuf;
 use std::process::Command;
 use std::thread;
 use std::time::Duration;
+
+#[derive(Copy, Clone)]
+enum CacheKind {
+    Known,
+    Available,
+}
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
 
     if args.len() < 2 {
-        eprintln!("Usage: network-status [connected|icon|known|available|speed|slot <known|available> <index>|ssid <known|available> <index>]");
+        eprintln!("Usage: network-status [connected|icon|known|available|speed|scan-cache [force]|slot <known|available> <index>|ssid <known|available> <index>]");
         return;
     }
 
@@ -18,10 +26,113 @@ fn main() {
         "known" => show_known_networks(),
         "available" => show_available_networks(),
         "speed" => show_live_speed(),
+        "scan-cache" => scan_cache(&args),
         "slot" => show_slot(&args),
         "ssid" => show_ssid_for_slot(&args),
         _ => {}
     }
+}
+
+fn cache_root() -> PathBuf {
+    if let Ok(dir) = env::var("XDG_CACHE_HOME") {
+        return PathBuf::from(dir).join("leviathan");
+    }
+
+    let home = env::var("HOME").unwrap_or_else(|_| String::from("/tmp"));
+    PathBuf::from(home).join(".cache").join("leviathan")
+}
+
+fn cache_file(kind: CacheKind) -> PathBuf {
+    let name = match kind {
+        CacheKind::Known => "network-known-cache.tsv",
+        CacheKind::Available => "network-available-cache.tsv",
+    };
+
+    cache_root().join(name)
+}
+
+fn format_entry(entry: &(String, i32)) -> String {
+    format!("{} {} ({}%)", signal_icon(entry.1), entry.0, entry.1)
+}
+
+fn parse_cached_entries(text: &str) -> Vec<(String, i32)> {
+    let mut out = Vec::new();
+
+    for line in text.lines() {
+        let mut parts = line.split('\t');
+        let ssid = parts.next().unwrap_or("").trim().to_string();
+        let signal = parts
+            .next()
+            .and_then(|v| v.parse::<i32>().ok())
+            .unwrap_or(0);
+
+        if !ssid.is_empty() {
+            out.push((ssid, signal));
+        }
+    }
+
+    out
+}
+
+fn cached_entries(kind: CacheKind) -> Vec<(String, i32)> {
+    let path = cache_file(kind);
+
+    if !path.exists() {
+        let _ = update_cache(false);
+    }
+
+    let Ok(text) = fs::read_to_string(&path) else {
+        return Vec::new();
+    };
+
+    parse_cached_entries(&text)
+}
+
+fn ssids_of(entries: &[(String, i32)]) -> Vec<String> {
+    entries.iter().map(|(ssid, _)| ssid.clone()).collect()
+}
+
+fn write_cache_if_needed(kind: CacheKind, entries: &[(String, i32)], force: bool) -> bool {
+    let root = cache_root();
+    let _ = fs::create_dir_all(&root);
+
+    let path = cache_file(kind);
+    let old_entries = fs::read_to_string(&path)
+        .ok()
+        .map(|s| parse_cached_entries(&s))
+        .unwrap_or_default();
+
+    let old_ssids = ssids_of(&old_entries);
+    let new_ssids = ssids_of(entries);
+
+    if !force && old_ssids == new_ssids {
+        return false;
+    }
+
+    let content = entries
+        .iter()
+        .map(|(ssid, signal)| format!("{}\t{}", ssid, signal))
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    let _ = fs::write(path, format!("{}\n", content));
+    true
+}
+
+fn update_cache(force: bool) -> bool {
+    let known = sorted_known_networks_in_range();
+    let available = sorted_available_networks();
+
+    let known_changed = write_cache_if_needed(CacheKind::Known, &known, force);
+    let available_changed = write_cache_if_needed(CacheKind::Available, &available, force);
+
+    known_changed || available_changed
+}
+
+fn scan_cache(args: &[String]) {
+    let force = args.get(2).map(|v| v == "force").unwrap_or(false);
+    let changed = update_cache(force);
+    println!("{}", if changed { "changed" } else { "unchanged" });
 }
 
 fn show_connected() {
@@ -371,7 +482,16 @@ fn get_known_wifi_connections() -> Vec<String> {
 }
 
 fn sorted_available_networks() -> Vec<(String, i32)> {
-    let mut networks: Vec<(String, i32)> = get_available_networks().into_iter().collect();
+    let current_ssid = get_ssid();
+    let known: HashSet<String> = get_known_wifi_connections().into_iter().collect();
+
+    let mut networks: Vec<(String, i32)> = get_available_networks()
+        .into_iter()
+        .filter(|(ssid, _)| !ssid.is_empty())
+        .filter(|(ssid, _)| *ssid != current_ssid)
+        .filter(|(ssid, _)| !known.contains(ssid))
+        .collect();
+
     networks.sort_by(|a, b| b.1.cmp(&a.1));
     networks
 }
@@ -410,9 +530,9 @@ fn parse_slot_args(args: &[String]) -> Option<(&str, usize)> {
 
 fn slot_network(group: &str, index: usize) -> Option<(String, i32)> {
     let list = if group == "known" {
-        sorted_known_networks_in_range()
+        cached_entries(CacheKind::Known)
     } else {
-        sorted_available_networks()
+        cached_entries(CacheKind::Available)
     };
 
     list.get(index).cloned()
@@ -442,13 +562,13 @@ fn show_ssid_for_slot(args: &[String]) {
 }
 
 fn show_known_networks() {
-    for (ssid, signal) in sorted_known_networks_in_range().iter() {
-        println!("{} {} ({}%)", signal_icon(*signal), ssid, signal);
+    for entry in cached_entries(CacheKind::Known).iter() {
+        println!("{}", format_entry(entry));
     }
 }
 
 fn show_available_networks() {
-    for (ssid, signal) in sorted_available_networks().iter() {
-        println!("{} {} ({}%)", signal_icon(*signal), ssid, signal);
+    for entry in cached_entries(CacheKind::Available).iter() {
+        println!("{}", format_entry(entry));
     }
 }
