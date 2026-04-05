@@ -6,7 +6,7 @@ let
   };
 
   quickshell = import ./quickshell {
-    inherit lib pkgs;
+    inherit config lib pkgs;
   };
 in
 nixgl // quickshell

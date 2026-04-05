@@ -1,10 +1,10 @@
 # Mapeo de archivos de configuración de Hyprland
 # Esta modularización permite gestionar la configuración de forma centralizada
 
-{ lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 let
   quickshell = import ./components/quickshell {
-    inherit lib pkgs;
+    inherit config lib pkgs;
   };
 in
 {

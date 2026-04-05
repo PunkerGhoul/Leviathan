@@ -33,7 +33,10 @@ let
     fi
 
     if [ "$group" = "known" ]; then
-      output="$(${pkgs.networkmanager}/bin/nmcli connection up id "$ssid" 2>&1)"
+      conn_name="$(${pkgs.networkmanager}/bin/nmcli -t -f NAME,802-11-wireless.ssid connection show 2>/dev/null | ${pkgs.gnugrep}/bin/grep -F ":$ssid" | ${pkgs.coreutils}/bin/head -n 1 | ${pkgs.coreutils}/bin/cut -d: -f1)"
+      [ -n "$conn_name" ] || conn_name="$ssid"
+
+      output="$(${pkgs.networkmanager}/bin/nmcli connection up id "$conn_name" 2>&1)"
       if [ $? -eq 0 ]; then
         emit_ok "Connected to $ssid"
       fi
@@ -46,19 +49,12 @@ let
       emit_error "Failed to connect to $ssid"
     fi
 
-    had_profile=0
-    ${pkgs.networkmanager}/bin/nmcli -t -f NAME connection show | ${pkgs.gnugrep}/bin/grep -Fx "$ssid" >/dev/null 2>&1 && had_profile=1
-
     output="$(${pkgs.networkmanager}/bin/nmcli dev wifi connect "$ssid" 2>&1)"
     if [ $? -eq 0 ]; then
       emit_ok "Connected to $ssid"
     fi
 
-    if [ "$had_profile" -eq 0 ]; then
-      ${pkgs.networkmanager}/bin/nmcli connection delete id "$ssid" >/dev/null 2>&1 || true
-    fi
-
-    if printf '%s' "$output" | grep -Eqi 'secret|password'; then
+    if printf '%s' "$output" | ${pkgs.gnugrep}/bin/grep -Eqi 'secret|password'; then
       emit_error "Wrong password or password required for $ssid"
     fi
 
@@ -128,16 +124,38 @@ let
         args = [];
         blocks = [
           {
-            text = ''
-if (!panel.screen) {
-    return
-}
-
-popupWidth = Math.max(320, Math.min(Math.max(320, panel.width - 20), popupWidth))
-popupHeight = Math.max(180, Math.min(Math.max(180, panel.screen.height - 20), popupHeight))
-popupPosX = Math.max(10, Math.min(Math.max(10, panel.width - popupWidth - 10), popupPosX))
-popupPosY = Math.max(panel.height + 8, Math.min(Math.max(panel.height + 8, panel.screen.height - popupHeight - 10), popupPosY))
-'';
+            statements = [
+              {
+                "if" = {
+                  condition = "!panel.screen";
+                  "then" = [ { "return" = true; } ];
+                };
+              }
+              {
+                assign = {
+                  target = "popupWidth";
+                  value = { expr = "Math.max(320, Math.min(Math.max(320, panel.width - 20), popupWidth))"; };
+                };
+              }
+              {
+                assign = {
+                  target = "popupHeight";
+                  value = { expr = "Math.max(180, Math.min(Math.max(180, panel.screen.height - 20), popupHeight))"; };
+                };
+              }
+              {
+                assign = {
+                  target = "popupPosX";
+                  value = { expr = "Math.max(10, Math.min(Math.max(10, panel.width - popupWidth - 10), popupPosX))"; };
+                };
+              }
+              {
+                assign = {
+                  target = "popupPosY";
+                  value = { expr = "Math.max(panel.height + 8, Math.min(Math.max(panel.height + 8, panel.screen.height - popupHeight - 10), popupPosY))"; };
+                };
+              }
+            ];
           }
         ];
       };
@@ -331,23 +349,43 @@ popupPosY = Math.max(panel.height + 8, Math.min(Math.max(panel.height + 8, panel
         args = [];
         blocks = [
           {
-            text = ''
-if (!panel.screen) {
-    return
-}
-
-const pos = networkStatusButton.mapToItem(panelRoot, 0, 0)
-const preferredW = Math.round(panel.screen.width * 0.34)
-
-popupWidth = Math.max(320, Math.min(Math.max(320, panel.width - 20), Math.min(520, preferredW)))
-popupPosY = pos.y + networkStatusButton.height + 8
-
-const maxH = Math.max(120, panel.screen.height - popupPosY - 10)
-popupHeight = Math.max(120, Math.min(maxH, popupHeight))
-popupPosX = pos.x + networkStatusButton.width - popupWidth
-
-ensurePopupBounds()
-'';
+            statements = [
+              {
+                "if" = {
+                  condition = "!panel.screen";
+                  "then" = [ { "return" = true; } ];
+                };
+              }
+              {
+                assign = {
+                  target = "popupWidth";
+                  value = { expr = "Math.max(320, Math.min(Math.max(320, panel.width - 20), Math.min(520, Math.round(panel.screen.width * 0.34))))"; };
+                };
+              }
+              {
+                assign = {
+                  target = "popupPosY";
+                  value = { expr = "networkStatusButton.mapToItem(panelRoot, 0, 0).y + networkStatusButton.height + 8"; };
+                };
+              }
+              {
+                assign = {
+                  target = "popupHeight";
+                  value = { expr = "Math.max(120, Math.min(Math.max(120, panel.screen.height - popupPosY - 10), popupHeight))"; };
+                };
+              }
+              {
+                assign = {
+                  target = "popupPosX";
+                  value = { expr = "networkStatusButton.mapToItem(panelRoot, 0, 0).x + networkStatusButton.width - popupWidth"; };
+                };
+              }
+              {
+                call = {
+                  fn = "ensurePopupBounds";
+                };
+              }
+            ];
           }
         ];
       };
@@ -356,15 +394,25 @@ ensurePopupBounds()
         args = [ "contentHeight" ];
         blocks = [
           {
-            text = ''
-if (!panel.screen) {
-    return
-}
-
-const maxH = Math.max(120, panel.screen.height - popupPosY - 10)
-popupHeight = Math.max(120, Math.min(maxH, contentHeight))
-ensurePopupBounds()
-'';
+            statements = [
+              {
+                "if" = {
+                  condition = "!panel.screen";
+                  "then" = [ { "return" = true; } ];
+                };
+              }
+              {
+                assign = {
+                  target = "popupHeight";
+                  value = { expr = "Math.max(120, Math.min(Math.max(120, panel.screen.height - popupPosY - 10), contentHeight))"; };
+                };
+              }
+              {
+                call = {
+                  fn = "ensurePopupBounds";
+                };
+              }
+            ];
           }
         ];
       };

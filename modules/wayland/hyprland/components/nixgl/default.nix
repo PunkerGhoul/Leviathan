@@ -12,6 +12,7 @@ let
   hyprlandWrapper = pkgs.replaceVars ./scripts/hyprland-wrapper.sh {
     bash = "${pkgs.bash}/bin/bash";
     coreutils = "${pkgs.coreutils}/bin";
+    homeDirectory = config.home.homeDirectory;
   };
 
   hyprlandBuilder = pkgs.replaceVars ./scripts/build-hyprland-session.sh {

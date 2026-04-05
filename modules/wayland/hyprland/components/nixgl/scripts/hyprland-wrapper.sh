@@ -1,6 +1,6 @@
 #!@bash@
 
-state_dir="${XDG_STATE_HOME:-$HOME/.local/state}"
+state_dir="${XDG_STATE_HOME:-@homeDirectory@/.local/state}"
 log_file="$state_dir/hyprland.log"
 
 @coreutils@/mkdir -p "$state_dir"
