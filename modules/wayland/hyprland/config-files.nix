@@ -1,7 +1,12 @@
 # Mapeo de archivos de configuración de Hyprland
 # Esta modularización permite gestionar la configuración de forma centralizada
 
-{ ... }:
+{ lib, pkgs, ... }:
+let
+  quickshell = import ./components/quickshell {
+    inherit lib pkgs;
+  };
+in
 {
   xdg.configFile = {
     # Archivos de tema
@@ -29,9 +34,10 @@
     };
 
     # Quickshell (barra de estado)
-    "quickshell/shell.qml".source = ./components/quickshell/config/shell.qml;
+    "quickshell/shell.qml".source = quickshell.shellQml;
 
     # Scripts
-    "hypr/scripts/restart-quickshell.sh".source = ./components/quickshell/scripts/restart-quickshell.sh;
+    # Single source of truth: use the generated script from quickshell/default.nix.
+    "hypr/scripts/restart-quickshell.sh".source = "${quickshell.restartBarScript}/bin/leviathan-restart-bar";
   };
 }

@@ -16,7 +16,7 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
 
     if args.len() < 2 {
-        eprintln!("Usage: network-status [connected|icon|known|available|speed|scan-cache [force]|slot <known|available> <index>|ssid <known|available> <index>]");
+        eprintln!("Usage: network-status [connected|icon|known|available|speed|scan-cache [force]|ssid <known|available> <index>]");
         return;
     }
 
@@ -27,7 +27,6 @@ fn main() {
         "available" => show_available_networks(),
         "speed" => show_live_speed(),
         "scan-cache" => scan_cache(&args),
-        "slot" => show_slot(&args),
         "ssid" => show_ssid_for_slot(&args),
         _ => {}
     }
@@ -88,10 +87,6 @@ fn cached_entries(kind: CacheKind) -> Vec<(String, i32)> {
     parse_cached_entries(&text)
 }
 
-fn ssids_of(entries: &[(String, i32)]) -> Vec<String> {
-    entries.iter().map(|(ssid, _)| ssid.clone()).collect()
-}
-
 fn write_cache_if_needed(kind: CacheKind, entries: &[(String, i32)], force: bool) -> bool {
     let root = cache_root();
     let _ = fs::create_dir_all(&root);
@@ -102,10 +97,7 @@ fn write_cache_if_needed(kind: CacheKind, entries: &[(String, i32)], force: bool
         .map(|s| parse_cached_entries(&s))
         .unwrap_or_default();
 
-    let old_ssids = ssids_of(&old_entries);
-    let new_ssids = ssids_of(entries);
-
-    if !force && old_ssids == new_ssids {
+    if !force && old_entries == entries {
         return false;
     }
 
@@ -421,14 +413,6 @@ fn get_available_networks() -> HashMap<String, i32> {
     networks
 }
 
-fn get_available_ssids() -> HashSet<String> {
-    get_available_networks().into_keys().collect()
-}
-
-fn get_ssid_signal(ssid: &str) -> Option<i32> {
-    get_available_networks().get(ssid).copied()
-}
-
 fn get_known_wifi_connections() -> Vec<String> {
     let mut known = Vec::new();
     let paths = run_busctl(&[
@@ -498,14 +482,14 @@ fn sorted_available_networks() -> Vec<(String, i32)> {
 
 fn sorted_known_networks_in_range() -> Vec<(String, i32)> {
     let current_ssid = get_ssid();
-    let available = get_available_ssids();
+    let available = get_available_networks();
     let known = get_known_wifi_connections();
 
     let mut known_in_range = Vec::new();
     for ssid in known {
-        if ssid != current_ssid && available.contains(&ssid) {
-            if let Some(signal) = get_ssid_signal(&ssid) {
-                known_in_range.push((ssid, signal));
+        if ssid != current_ssid {
+            if let Some(signal) = available.get(&ssid) {
+                known_in_range.push((ssid, *signal));
             }
         }
     }
@@ -536,19 +520,6 @@ fn slot_network(group: &str, index: usize) -> Option<(String, i32)> {
     };
 
     list.get(index).cloned()
-}
-
-fn show_slot(args: &[String]) {
-    let Some((group, index)) = parse_slot_args(args) else {
-        println!("-");
-        return;
-    };
-
-    if let Some((ssid, signal)) = slot_network(group, index) {
-        println!("{} {} ({}%)", signal_icon(signal), ssid, signal);
-    } else {
-        println!("-");
-    }
 }
 
 fn show_ssid_for_slot(args: &[String]) {

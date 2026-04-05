@@ -3,7 +3,7 @@ let
   battery = import ./battery.nix { inherit pkgs; };
   bluetooth = import ./bluetooth.nix { inherit pkgs; };
   updates = import ./updates.nix { inherit pkgs; };
-  network = import ./network.nix { inherit pkgs; };
+  network = import ./network { inherit pkgs; };
 
   powerIconScript = pkgs.writeShellScriptBin "leviathan-power-icon" ''
     ${pkgs.coreutils}/bin/printf '󰐥\n'
@@ -15,10 +15,8 @@ in
     bluetooth
     updates.updatesScript
     updates.runUpdatesScript
-    network.networkSlotUiScript
     network.networkConnectUiScript
-    network.networkScrollScript
-    network.networkResetScrollScript
+    network.networkForgetUiScript
     powerIconScript
   ];
 

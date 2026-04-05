@@ -1,12 +1,13 @@
 { pkgs }:
 let
-  launcher = import ./launcher.nix { inherit pkgs; };
-  calendar = import ./calendar.nix { inherit pkgs; };
-  wallpaper = import ./wallpaper.nix { inherit pkgs; };
-  screenshot = import ./screenshot.nix { inherit pkgs; };
-  menus = import ./menus { inherit pkgs; };
+  launcher = import ./apps/launcher.nix { inherit pkgs; };
+  calendar = import ./apps/calendar.nix { inherit pkgs; };
+  wallpaper = import ./apps/wallpaper.nix { inherit pkgs; };
+  screenshot = import ./apps/screenshot.nix { inherit pkgs; };
+  menus = import ./ui/menus { inherit pkgs; };
   utilities = import ./utilities { inherit pkgs; };
-  quick = import ./quick { inherit pkgs; };
+  # Keep quick imported/exported for compatibility, but do not package its scripts by default.
+  quick = import ./ui/quick { inherit pkgs; };
 in
 {
   # Export all individual scripts
@@ -20,6 +21,5 @@ in
     wallpaper
     screenshot
   ] ++ menus.scripts
-    ++ utilities.scripts
-    ++ quick.scripts;
+    ++ utilities.scripts;
 }
