@@ -9,7 +9,7 @@ pkgs.writeShellScriptBin "leviathan-power-menu" ''
 
   case "$choice" in
     lock)
-      exec ${pkgs.hyprlock}/bin/hyprlock
+      exec hyprlock
       ;;
     logout)
       exec hyprctl dispatch exit

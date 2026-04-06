@@ -2,10 +2,21 @@
 # Separados por categoría para mejor mantenimiento
 
 { pkgs, scripts }:
+let
+  hyprlockManaged = pkgs.symlinkJoin {
+    name = "hyprlock-managed";
+    paths = [ pkgs.hyprlock ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram $out/bin/hyprlock \
+        --prefix LD_LIBRARY_PATH : /usr/lib:/usr/lib64:/lib:/lib64
+    '';
+  };
+in
 {
   # Desktop environment
   hyprland = with pkgs; [
-    hyprlock
+    hyprlockManaged
     hyprshot
     wofi
     kitty
@@ -38,7 +49,7 @@
   # Aggregated list for home.packages
   all = with pkgs; [
     # Hyprland environment
-    hyprlock
+    hyprlockManaged
     hyprshot
     wofi
     kitty
