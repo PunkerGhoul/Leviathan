@@ -9,7 +9,7 @@ let
     nativeBuildInputs = [ pkgs.makeWrapper ];
     postBuild = ''
       wrapProgram $out/bin/hyprlock \
-        --prefix LD_LIBRARY_PATH : /usr/lib:/usr/lib64:/lib:/lib64
+        --prefix LD_LIBRARY_PATH : /usr/lib
     '';
   };
 in
