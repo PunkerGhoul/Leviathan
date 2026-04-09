@@ -44,6 +44,7 @@ in
   # Typography
   fonts = with pkgs; [
     nerd-fonts.symbols-only
+    noto-fonts
   ];
 
   # Aggregated list for home.packages
@@ -71,5 +72,6 @@ in
 
     # Typography
     nerd-fonts.symbols-only
+    noto-fonts
   ] ++ scripts.allScripts;
 }

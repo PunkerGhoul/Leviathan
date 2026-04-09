@@ -1,5 +1,7 @@
 { pkgs }:
 let
+  vpnStatusScript = import ./vpn-status.nix { inherit pkgs; };
+
   networkConnectUiScript = pkgs.writeShellScriptBin "leviathan-network-connect-ui" ''
     group="$1"
     ui_index="$2"
@@ -466,6 +468,7 @@ in
 {
   inherit qml;
 
+  inherit vpnStatusScript;
   inherit networkConnectUiScript;
   inherit networkForgetUiScript;
 }

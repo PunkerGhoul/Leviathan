@@ -28,6 +28,16 @@ let
         type = "int";
         value = 0;
       }
+      {
+        name = "clockExpanded";
+        type = "bool";
+        value = false;
+      }
+      {
+        name = "calendarPopupOpen";
+        type = "bool";
+        value = false;
+      }
     ];
     functions = {
       launchNow = {

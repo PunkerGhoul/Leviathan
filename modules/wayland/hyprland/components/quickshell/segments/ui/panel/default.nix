@@ -40,10 +40,17 @@ let
     };
 
     hiddenTexts = [
+      { id = "clockText"; visible = false; text = "--:-- --"; }
+      { id = "clockDateText"; visible = false; text = "--/--/----"; }
       { id = "updatesText"; visible = false; text = "󰚰 0"; }
       { id = "networkText"; visible = false; text = "󰤯"; }
       { id = "bluetoothText"; visible = false; text = "󰂲"; }
+      { id = "volumeText"; visible = false; text = "󰕾 0%"; }
       { id = "batteryText"; visible = false; text = "󰁹 100%"; }
+      { id = "workspaceText"; visible = false; text = "1"; }
+      { id = "workspaceListText"; visible = false; text = "1"; }
+      { id = "vpnText"; visible = false; text = ""; }
+      { id = "calendarText"; visible = false; text = ""; }
       { id = "networkConnectedText"; visible = false; text = "Disconnected"; }
       { id = "networkSpeedText"; visible = false; text = "No traffic"; }
     ];
@@ -65,15 +72,37 @@ let
         { id = "screenshotProc"; command = [ "sh" "-lc" "leviathan-screenshot" ]; running = false; }
         { id = "settingsProc"; command = [ "sh" "-lc" "leviathan-settings" ]; running = false; }
         { id = "powerMenuProc"; command = [ "sh" "-lc" "leviathan-power-menu" ]; running = false; }
+        { id = "volumeOpenProc"; command = [ "sh" "-lc" "setsid -f pavucontrol >/dev/null 2>&1" ]; running = false; }
+        { id = "workspaceSwitchProc"; command = [ "sh" "-lc" "true" ]; running = false; }
         { id = "updatesRunProc"; command = [ "sh" "-lc" "leviathan-run-updates" ]; running = false; }
       ];
 
       status = [
         {
           id = "clockProc";
-          command = [ "sh" "-lc" "date '+%m/%d/%Y  %I:%M %p'" ];
+          command = [ "sh" "-lc" "date '+%I:%M %p'" ];
           running = true;
           stdoutOnStreamFinished = "clockText.text = this.text.trim()";
+        }
+        {
+          id = "clockDateProc";
+          command = [ "sh" "-lc" "date '+%d/%m/%Y'" ];
+          running = true;
+          stdoutOnStreamFinished = ''{
+                        const value = this.text.trim();
+                        clockDateText.text = value.length > 0 ? value : "--/--/----";
+                    }'';
+        }
+        {
+          id = "volumeEventProc";
+          command = [ "sh" "-lc" "leviathan-volume-event" ];
+          running = true;
+          stdoutOnStreamFinished = ''{
+                        volumeProc.running = true;
+                Qt.callLater(function() {
+                  volumeEventProc.running = true;
+                });
+                    }'';
         }
         {
           id = "updatesProc";
@@ -88,6 +117,41 @@ let
           stdoutOnStreamFinished = ''{
                         const icon = this.text.trim();
                         networkText.text = icon.length > 0 ? icon : "󰤮";
+                    }'';
+        }
+        {
+          id = "vpnProc";
+          command = [ "sh" "-lc" "leviathan-vpn-status" ];
+          running = true;
+          stdoutOnStreamFinished = ''{
+                        vpnText.text = this.text.trim();
+                    }'';
+        }
+        {
+          id = "workspaceProc";
+          command = [ "sh" "-lc" "hyprctl activeworkspace 2>/dev/null | awk '/workspace ID/ { print $3; found=1; exit } END { if (!found) print \"1\" }'" ];
+          running = true;
+          stdoutOnStreamFinished = ''{
+                        const value = this.text.trim();
+                        workspaceText.text = value.length > 0 ? value : "1";
+                    }'';
+        }
+        {
+          id = "workspaceListProc";
+          command = [ "sh" "-lc" ''list="$(hyprctl workspaces 2>/dev/null | awk '/workspace ID/ { print $3 }' | sort -n | awk 'BEGIN { first = 1 } { if (!first) printf " "; printf $1; first = 0 } END { print "" }')"; if [ -z "$list" ]; then list="$(hyprctl activeworkspace 2>/dev/null | awk '/workspace ID/ { print $3; exit }')"; fi; printf '%s\n' "$list"'' ];
+          running = true;
+          stdoutOnStreamFinished = ''{
+                        const value = this.text.trim();
+                        workspaceListText.text = value.length > 0 ? value : "1";
+                    }'';
+        }
+        {
+          id = "calendarMonthProc";
+          command = [ "sh" "-lc" "leviathan-calendar-month" ];
+          running = true;
+          stdoutOnStreamFinished = ''{
+                        const value = this.text.replace(/\s+$/g, "");
+                        calendarText.text = value.length > 0 ? value : "Calendar unavailable";
                     }'';
         }
         {
@@ -152,6 +216,15 @@ let
                     }'';
         }
         {
+          id = "volumeProc";
+          command = [ "sh" "-lc" "leviathan-volume-status" ];
+          running = true;
+          stdoutOnStreamFinished = ''{
+                        const value = this.text.trim();
+                        volumeText.text = value.length > 0 ? value : "󰕾 0%";
+                    }'';
+        }
+        {
           id = "batteryProc";
           command = [ "sh" "-lc" "leviathan-battery" ];
           running = true;
@@ -168,7 +241,12 @@ let
         interval = 1000;
         repeat = true;
         runningExpr = "true";
-        onTriggered = "clockProc.running = true";
+        onTriggered = ''{
+                    clockProc.running = true
+                    if (new Date().getSeconds() === 0) {
+                        clockDateProc.running = true
+                    }
+                }'';
       }
       {
         interval = 10000;
@@ -177,9 +255,25 @@ let
         onTriggered = ''{
                     updatesProc.running = true
                     networkProc.running = true
+                    vpnProc.running = true
                     bluetoothProc.running = true
                     batteryProc.running = true
                 }'';
+      }
+      {
+        interval = 60000;
+        repeat = true;
+        runningExpr = "true";
+        onTriggered = ''{
+                    workspaceProc.running = true
+                    workspaceListProc.running = true
+                }'';
+      }
+      {
+        interval = 900000;
+        repeat = true;
+        runningExpr = "true";
+        onTriggered = "calendarMonthProc.running = true";
       }
       {
         interval = 4000;
