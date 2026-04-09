@@ -3,17 +3,17 @@ let
     windowConfig = {
       screen = "modelData";
       color = "transparent";
-      implicitHeight = 56;
-      exclusiveZone = 56;
+      implicitHeight = 48;
+      exclusiveZone = 48;
       anchors = {
         top = true;
         left = true;
         right = true;
       };
       margins = {
-        top = 10;
-        left = 10;
-        right = 10;
+        top = 0;
+        left = 0;
+        right = 0;
       };
     };
 

@@ -15,10 +15,15 @@
                 property int calendarViewYear: selectedDate.getFullYear()
                 property bool monthPickerOpen: false
                 property bool yearPickerOpen: false
+                property color chromeBorder: Qt.rgba(0.74, 0.58, 0.98, 0.86)
+                property color chromeBorderSoft: Qt.rgba(0.74, 0.58, 0.98, 0.70)
+                property color chromeFill: Qt.rgba(0.06, 0.05, 0.14, 0.64)
+                property color chromeFillSoft: Qt.rgba(0.07, 0.06, 0.14, 0.54)
+                property color chromeSeparator: Qt.rgba(0.74, 0.58, 0.98, 0.70)
                 anchors.fill: parent
                 radius: 16
-                border.width: 1
-                border.color: "#595f75"
+                border.width: 0
+                border.color: "transparent"
                 function updateCalendarAnchor() {
                     calendarAnchorX = Math.max(10, Math.min(panel.width - calendarPopupWidth - 10, clockWidget.mapToItem(panelRoot, 0, 0).x + clockWidget.width - calendarPopupWidth))
                     calendarAnchorY = clockWidget.mapToItem(panelRoot, 0, 0).y + clockWidget.height + 8
@@ -55,91 +60,158 @@
                     calendarViewYear = now.getFullYear()
                     calendarViewMonth = now.getMonth()
                 }
-                gradient: Gradient {
-                    orientation: Gradient.Vertical
-                    GradientStop { position: 0.0; color: "#2f3445" }
-                    GradientStop { position: 1.0; color: "#222836" }
-                }
+                color: "transparent"
 
                 RowLayout {
-                    anchors.fill: parent
-                    anchors.leftMargin: 12
-                    anchors.rightMargin: 12
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    anchors.topMargin: 0
+                    anchors.leftMargin: 0
+                    anchors.rightMargin: 0
                     spacing: 10
 
-                    RowLayout {
-                        id: menuGroup
-                        spacing: 8
-
-                        QuickButton {
-                            text: "󰣇"
-                            accent: true
-                            onClicked: panel.launchNow(launchProc)
+                    Rectangle {
+                        id: leftGroupBar
+                        radius: 8
+                        border.width: 1
+                        border.color: panelRoot.chromeBorder
+                        gradient: Gradient {
+                            orientation: Gradient.Horizontal
+                            GradientStop { position: 0.0; color: Qt.rgba(0.08, 0.06, 0.16, 0.78) }
+                            GradientStop { position: 1.0; color: Qt.rgba(0.05, 0.04, 0.12, 0.66) }
                         }
-                    }
+                        Layout.preferredHeight: 38
+                        Layout.preferredWidth: leftGroupRow.implicitWidth + 5
 
-                    RowLayout {
-                        id: shortcutsGroup
-                        spacing: 8
-
-                        QuickButton {
-                            text: "󰆍"
-                            onClicked: {
-                                const procs = [terminalProc0, terminalProc1, terminalProc2]
-                                panel.launchNow(procs[panel.terminalProcSlot])
-                                panel.terminalProcSlot = (panel.terminalProcSlot + 1) % procs.length
-                            }
+                        // Flatten top-left corner for cyber notch mix.
+                        Rectangle {
+                            anchors.left: parent.left
+                            anchors.top: parent.top
+                            width: 10
+                            height: 10
+                            color: Qt.rgba(0.08, 0.06, 0.16, 0.78)
                         }
 
-                        QuickButton {
-                            text: "󰉋"
-                            onClicked: {
-                                const procs = [filesProc0, filesProc1, filesProc2]
-                                panel.launchNow(procs[panel.filesProcSlot])
-                                panel.filesProcSlot = (panel.filesProcSlot + 1) % procs.length
-                            }
+                        // Flatten bottom-right corner for asymmetry.
+                        Rectangle {
+                            anchors.right: parent.right
+                            anchors.bottom: parent.bottom
+                            width: 10
+                            height: 10
+                            color: Qt.rgba(0.05, 0.04, 0.12, 0.66)
                         }
-
-                        QuickButton {
-                            text: "󰖟"
-                            onClicked: {
-                                const procs = [browserProc0, browserProc1, browserProc2]
-                                panel.launchNow(procs[panel.browserProcSlot])
-                                panel.browserProcSlot = (panel.browserProcSlot + 1) % procs.length
-                            }
-                        }
-
-                        QuickButton {
-                            text: "󰸉"
-                            onClicked: panel.launchNow(wallpaperProc)
-                        }
-
-                        QuickButton {
-                            text: "󰄀"
-                            onClicked: panel.launchNow(screenshotProc)
-                        }
-
-                        QuickButton {
-                            text: "󰒓"
-                            onClicked: panel.launchNow(settingsProc)
-                        }
-                    }
-
-                    RowLayout {
-                        id: workspaceGroup
-                        spacing: 6
 
                         Rectangle {
-                            radius: 10
-                            border.width: 1
-                            border.color: "#6a7396"
-                            color: "#2b3142"
-                            Layout.preferredHeight: 34
-                            Layout.preferredWidth: Math.max(46, workspaceIconsRow.implicitWidth + 14)
+                            anchors.left: parent.left
+                            anchors.top: parent.top
+                            width: parent.width - 36
+                            height: 1
+                            color: Qt.rgba(0.74, 0.58, 0.98, 0.96)
+                        }
+
+                        Rectangle {
+                            anchors.right: parent.right
+                            anchors.top: parent.top
+                            width: 24
+                            height: 2
+                            color: Qt.rgba(0.74, 0.58, 0.98, 0.74)
+                        }
+
+                        Rectangle {
+                            anchors.left: parent.left
+                            anchors.bottom: parent.bottom
+                            width: 42
+                            height: 2
+                            color: Qt.rgba(0.74, 0.58, 0.98, 0.88)
+                        }
+
+                        Rectangle {
+                            anchors.left: parent.left
+                            anchors.bottom: parent.bottom
+                            anchors.bottomMargin: 4
+                            width: 20
+                            height: 1
+                            color: Qt.rgba(0.74, 0.58, 0.98, 0.56)
+                        }
+
+                        RowLayout {
+                            id: leftGroupRow
+                            anchors.left: parent.left
+                            anchors.leftMargin: 0
+                            anchors.verticalCenter: parent.verticalCenter
+                            spacing: 3
+
+                            QuickButton {
+                                text: "󰣇"
+                                accent: true
+                                onClicked: panel.launchNow(launchProc)
+                            }
+
+                            Rectangle {
+                                width: 1
+                                height: 18
+                                radius: 1
+                                color: panelRoot.chromeSeparator
+                            }
+
+                            QuickButton {
+                                text: "󰆍"
+                                flatUntilHover: true
+                                onClicked: {
+                                    const procs = [terminalProc0, terminalProc1, terminalProc2]
+                                    panel.launchNow(procs[panel.terminalProcSlot])
+                                    panel.terminalProcSlot = (panel.terminalProcSlot + 1) % procs.length
+                                }
+                            }
+
+                            QuickButton {
+                                text: "󰉋"
+                                flatUntilHover: true
+                                onClicked: {
+                                    const procs = [filesProc0, filesProc1, filesProc2]
+                                    panel.launchNow(procs[panel.filesProcSlot])
+                                    panel.filesProcSlot = (panel.filesProcSlot + 1) % procs.length
+                                }
+                            }
+
+                            QuickButton {
+                                text: "󰖟"
+                                flatUntilHover: true
+                                onClicked: {
+                                    const procs = [browserProc0, browserProc1, browserProc2]
+                                    panel.launchNow(procs[panel.browserProcSlot])
+                                    panel.browserProcSlot = (panel.browserProcSlot + 1) % procs.length
+                                }
+                            }
+
+                            QuickButton {
+                                text: "󰸉"
+                                flatUntilHover: true
+                                onClicked: panel.launchNow(wallpaperProc)
+                            }
+
+                            QuickButton {
+                                text: "󰄀"
+                                flatUntilHover: true
+                                onClicked: panel.launchNow(screenshotProc)
+                            }
+
+                            QuickButton {
+                                text: "󰒓"
+                                flatUntilHover: true
+                                onClicked: panel.launchNow(settingsProc)
+                            }
+
+                            Rectangle {
+                                width: 1
+                                height: 18
+                                radius: 1
+                                color: panelRoot.chromeSeparator
+                            }
 
                             Row {
                                 id: workspaceIconsRow
-                                anchors.centerIn: parent
                                 spacing: 5
 
                                 Repeater {
@@ -181,8 +253,9 @@
                                         Text {
                                             anchors.centerIn: parent
                                             text: wsIcon
-                                            color: workspaceText.text === String(modelData) ? "#bd93f9" : "#98a4c9"
-                                            font.pixelSize: 12
+                                            color: workspaceText.text === String(modelData) ? "#bd93f9" : "#b7c0df"
+                                            font.pixelSize: workspaceText.text === String(modelData) ? 15 : 12
+                                            font.bold: workspaceText.text === String(modelData)
                                             font.family: "Symbols Nerd Font"
                                         }
 
@@ -204,113 +277,178 @@
                         Layout.fillWidth: true
                     }
 
-                    RowLayout {
-                        id: rightGroup
-                        spacing: 8
+                    Rectangle {
+                        radius: 8
+                        border.width: 1
+                        border.color: panelRoot.chromeBorderSoft
+                        gradient: Gradient {
+                            orientation: Gradient.Horizontal
+                            GradientStop { position: 0.0; color: Qt.rgba(0.08, 0.06, 0.15, 0.68) }
+                            GradientStop { position: 1.0; color: Qt.rgba(0.05, 0.05, 0.13, 0.60) }
+                        }
+                        Layout.preferredHeight: 38
+                        Layout.preferredWidth: rightGroup.implicitWidth + 14
 
-                        StatusPill {
-                            text: vpnText.text
-                            visible: vpnText.text.length > 0
+                        // Flatten top-right corner for cyber notch mix.
+                        Rectangle {
+                            anchors.right: parent.right
+                            anchors.top: parent.top
+                            width: 10
+                            height: 10
+                            color: Qt.rgba(0.05, 0.05, 0.13, 0.60)
                         }
 
-                        StatusPill {
-                            text: updatesText.text
-                            warning: true
-                            onClicked: updatesRunProc.running = true
-                        }
-
-                        StatusPill {
-                            id: networkStatusButton
-                            text: networkText.text
-                            onClicked: {
-                                panel.networkPopupOpen = !panel.networkPopupOpen
-                                if (panel.networkPopupOpen) {
-                                    panel.refreshNetworkPopup()
-                                    panel.requestNetworkCacheScan(false)
-                                    panel.positionPopupUnderNetworkButton()
-                                }
-                            }
-                        }
-
-                        StatusPill {
-                            text: bluetoothText.text
-                            onClicked: bluetoothOpenProc.running = true
-                        }
-
-                        StatusPill {
-                            text: volumeText.text
-                            onClicked: volumeOpenProc.running = true
-                        }
-
-                        StatusPill {
-                            text: batteryText.text
+                        // Flatten bottom-left corner for asymmetry.
+                        Rectangle {
+                            anchors.left: parent.left
+                            anchors.bottom: parent.bottom
+                            width: 10
+                            height: 10
+                            color: Qt.rgba(0.08, 0.06, 0.15, 0.68)
                         }
 
                         Rectangle {
-                            id: clockWidget
-                            radius: 10
-                            border.width: 1
-                            border.color: "#6a7396"
-                            color: "#2b3142"
-                            Layout.preferredHeight: panel.clockExpanded ? 54 : 34
-                            Layout.preferredWidth: 130
-
-                            Column {
-                                anchors.centerIn: parent
-                                spacing: panel.clockExpanded ? 2 : 0
-
-                                Text {
-                                    text: clockText.text
-                                    color: "#e5e9f0"
-                                    font.pixelSize: 14
-                                    font.family: "Maple Mono NF"
-                                    horizontalAlignment: Text.AlignHCenter
-                                }
-
-                                Text {
-                                    visible: panel.clockExpanded
-                                    text: clockDateText.text
-                                    color: "#b8c2df"
-                                    font.pixelSize: 11
-                                    font.family: "Maple Mono NF"
-                                    horizontalAlignment: Text.AlignHCenter
-                                }
-                            }
-
-                            TapHandler {
-                                acceptedButtons: Qt.LeftButton | Qt.RightButton
-                                gesturePolicy: TapHandler.ReleaseWithinBounds
-
-                                onTapped: function(eventPoint, button) {
-                                    if (button === Qt.LeftButton) {
-                                        if (panel.calendarPopupOpen) {
-                                            panel.calendarPopupOpen = false
-                                        }
-                                        panel.clockExpanded = !panel.clockExpanded
-                                        return
-                                    }
-
-                                    if (button === Qt.RightButton) {
-                                        if (panel.calendarPopupOpen) {
-                                            panel.calendarPopupOpen = false
-                                        } else {
-                                            panelRoot.todayDate = new Date()
-                                            panelRoot.calendarViewYear = panelRoot.selectedDate.getFullYear()
-                                            panelRoot.calendarViewMonth = panelRoot.selectedDate.getMonth()
-                                            panelRoot.monthPickerOpen = false
-                                            panelRoot.yearPickerOpen = false
-                                            panelRoot.updateCalendarAnchor()
-                                            panel.calendarPopupOpen = true
-                                        }
-                                    }
-                                }
-                            }
+                            anchors.right: parent.right
+                            anchors.top: parent.top
+                            width: parent.width - 34
+                            height: 1
+                            color: Qt.rgba(0.74, 0.58, 0.98, 0.92)
                         }
 
-                        QuickButton {
-                            text: "󰐥"
-                            danger: true
-                            onClicked: powerMenuProc.running = true
+                        Rectangle {
+                            anchors.left: parent.left
+                            anchors.top: parent.top
+                            width: 22
+                            height: 2
+                            color: Qt.rgba(0.74, 0.58, 0.98, 0.70)
+                        }
+
+                        Rectangle {
+                            anchors.right: parent.right
+                            anchors.bottom: parent.bottom
+                            width: 46
+                            height: 2
+                            color: Qt.rgba(0.74, 0.58, 0.98, 0.84)
+                        }
+
+                        Rectangle {
+                            anchors.right: parent.right
+                            anchors.bottom: parent.bottom
+                            anchors.bottomMargin: 4
+                            width: 18
+                            height: 1
+                            color: Qt.rgba(0.74, 0.58, 0.98, 0.56)
+                        }
+
+                        RowLayout {
+                            id: rightGroup
+                            anchors.centerIn: parent
+                            spacing: 6
+
+                            StatusPill {
+                                text: vpnText.text
+                                visible: vpnText.text.length > 0
+                            }
+
+                            StatusPill {
+                                text: updatesText.text
+                                warning: true
+                                onClicked: updatesRunProc.running = true
+                            }
+
+                            StatusPill {
+                                id: networkStatusButton
+                                text: networkText.text
+                                onClicked: {
+                                    panel.networkPopupOpen = !panel.networkPopupOpen
+                                    if (panel.networkPopupOpen) {
+                                        panel.refreshNetworkPopup()
+                                        panel.requestNetworkCacheScan(false)
+                                        panel.positionPopupUnderNetworkButton()
+                                    }
+                                }
+                            }
+
+                            StatusPill {
+                                text: bluetoothText.text
+                                onClicked: bluetoothOpenProc.running = true
+                            }
+
+                            StatusPill {
+                                text: volumeText.text
+                                onClicked: volumeOpenProc.running = true
+                            }
+
+                            StatusPill {
+                                text: batteryText.text
+                            }
+
+                            Rectangle {
+                                id: clockWidget
+                                radius: 7
+                                border.width: 1
+                                border.color: panelRoot.chromeBorderSoft
+                                color: Qt.rgba(0.05, 0.03, 0.11, 0.30)
+                                Layout.preferredHeight: 32
+                                Layout.preferredWidth: panel.clockExpanded ? 82 : 86
+
+                                Column {
+                                    anchors.centerIn: parent
+                                    spacing: panel.clockExpanded ? 1 : 0
+
+                                    Text {
+                                        text: clockText.text
+                                        color: "#e5e9f0"
+                                        font.pixelSize: panel.clockExpanded ? 9 : 13
+                                        font.family: "Maple Mono NF"
+                                        horizontalAlignment: Text.AlignHCenter
+                                    }
+
+                                    Text {
+                                        visible: panel.clockExpanded
+                                        text: clockDateText.text
+                                        color: "#b8c2df"
+                                        font.pixelSize: 9
+                                        font.family: "Maple Mono NF"
+                                        horizontalAlignment: Text.AlignHCenter
+                                    }
+                                }
+
+                                TapHandler {
+                                    acceptedButtons: Qt.LeftButton | Qt.RightButton
+                                    gesturePolicy: TapHandler.ReleaseWithinBounds
+
+                                    onTapped: function(eventPoint, button) {
+                                        if (button === Qt.LeftButton) {
+                                            if (panel.calendarPopupOpen) {
+                                                panel.calendarPopupOpen = false
+                                            }
+                                            panel.clockExpanded = !panel.clockExpanded
+                                            return
+                                        }
+
+                                        if (button === Qt.RightButton) {
+                                            if (panel.calendarPopupOpen) {
+                                                panel.calendarPopupOpen = false
+                                            } else {
+                                                panelRoot.todayDate = new Date()
+                                                panelRoot.calendarViewYear = panelRoot.selectedDate.getFullYear()
+                                                panelRoot.calendarViewMonth = panelRoot.selectedDate.getMonth()
+                                                panelRoot.monthPickerOpen = false
+                                                panelRoot.yearPickerOpen = false
+                                                panelRoot.updateCalendarAnchor()
+                                                panel.calendarPopupOpen = true
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            QuickButton {
+                                text: "󰐥"
+                                danger: true
+                                onClicked: powerMenuProc.running = true
+                            }
                         }
                     }
                 }
