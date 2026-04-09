@@ -427,6 +427,7 @@ ${if stdoutOnStreamFinished != null then ''
       "import QtQuick.Layouts"
       "import Quickshell"
       "import Quickshell.Io"
+      "import Quickshell.Hyprland"
     ] ++ networkBlocks.qml.imports;
 
     properties = [

@@ -18,14 +18,18 @@ Text {
     font.family: "Symbols Nerd Font"
 }
 
-MouseArea {
-    anchors.fill: parent
-    hoverEnabled: true
+HoverHandler {
     cursorShape: Qt.PointingHandCursor
+}
+
+TapHandler {
     acceptedButtons: Qt.LeftButton
-    preventStealing: true
-    onPressed: function(mouse) {
+    gesturePolicy: TapHandler.ReleaseWithinBounds
+
+    onPressedChanged: {
+        if (!pressed) {
+            return
+        }
         parent.clicked()
-        mouse.accepted = false
     }
 }

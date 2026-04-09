@@ -1,3 +1,8 @@
+            HyprlandFocusGrab {
+                windows: [panel]
+                active: true
+            }
+
             Rectangle {
                 id: panelRoot
                 anchors.fill: parent
@@ -28,17 +33,29 @@
 
                         QuickButton {
                             text: "󰆍"
-                            onClicked: panel.launchNow(terminalProc)
+                            onClicked: {
+                                const procs = [terminalProc0, terminalProc1, terminalProc2]
+                                panel.launchNow(procs[panel.terminalProcSlot])
+                                panel.terminalProcSlot = (panel.terminalProcSlot + 1) % procs.length
+                            }
                         }
 
                         QuickButton {
                             text: "󰉋"
-                            onClicked: panel.launchNow(filesProc)
+                            onClicked: {
+                                const procs = [filesProc0, filesProc1, filesProc2]
+                                panel.launchNow(procs[panel.filesProcSlot])
+                                panel.filesProcSlot = (panel.filesProcSlot + 1) % procs.length
+                            }
                         }
 
                         QuickButton {
                             text: "󰖟"
-                            onClicked: panel.launchNow(browserProc)
+                            onClicked: {
+                                const procs = [browserProc0, browserProc1, browserProc2]
+                                panel.launchNow(procs[panel.browserProcSlot])
+                                panel.browserProcSlot = (panel.browserProcSlot + 1) % procs.length
+                            }
                         }
 
                         QuickButton {

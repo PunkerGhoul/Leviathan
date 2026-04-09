@@ -51,10 +51,16 @@ let
     processes = {
       action = [
         { id = "launchProc"; command = [ "sh" "-lc" "leviathan-launcher" ]; running = false; }
-        { id = "terminalProc"; command = [ "sh" "-lc" "setsid -f kitty >/dev/null 2>&1" ]; running = false; }
-        { id = "filesProc"; command = [ "sh" "-lc" "setsid -f thunar >/dev/null 2>&1" ]; running = false; }
+        { id = "terminalProc0"; command = [ "sh" "-lc" "setsid -f kitty >/dev/null 2>&1" ]; running = false; }
+        { id = "terminalProc1"; command = [ "sh" "-lc" "setsid -f kitty >/dev/null 2>&1" ]; running = false; }
+        { id = "terminalProc2"; command = [ "sh" "-lc" "setsid -f kitty >/dev/null 2>&1" ]; running = false; }
+        { id = "filesProc0"; command = [ "sh" "-lc" "setsid -f thunar >/dev/null 2>&1" ]; running = false; }
+        { id = "filesProc1"; command = [ "sh" "-lc" "setsid -f thunar >/dev/null 2>&1" ]; running = false; }
+        { id = "filesProc2"; command = [ "sh" "-lc" "setsid -f thunar >/dev/null 2>&1" ]; running = false; }
         { id = "bluetoothOpenProc"; command = [ "sh" "-lc" "setsid -f blueman-manager >/dev/null 2>&1 || setsid -f blueberry >/dev/null 2>&1" ]; running = false; }
-        { id = "browserProc"; command = [ "sh" "-lc" "setsid -f librewolf >/dev/null 2>&1" ]; running = false; }
+        { id = "browserProc0"; command = [ "sh" "-lc" "setsid -f librewolf >/dev/null 2>&1" ]; running = false; }
+        { id = "browserProc1"; command = [ "sh" "-lc" "setsid -f librewolf >/dev/null 2>&1" ]; running = false; }
+        { id = "browserProc2"; command = [ "sh" "-lc" "setsid -f librewolf >/dev/null 2>&1" ]; running = false; }
         { id = "wallpaperProc"; command = [ "sh" "-lc" "leviathan-wallpaper-picker" ]; running = false; }
         { id = "screenshotProc"; command = [ "sh" "-lc" "leviathan-screenshot" ]; running = false; }
         { id = "settingsProc"; command = [ "sh" "-lc" "leviathan-settings" ]; running = false; }
