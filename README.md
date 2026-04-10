@@ -12,6 +12,44 @@ nix run .
 
 This is the recommended entrypoint because it uses the `home-manager` bundled by the flake itself, so it works even if `home-manager` is not installed globally.
 
+`nix run .` now executes a simple flow:
+
+1. Validate installation (`nix`, `flake.nix`, `home.nix`).
+2. Run `home-manager switch --flake .#ghoul -b backup`.
+
+Before rebuilding, `nix run .` ensures `local/default.nix` exists (inside `local/`, ignored by Git) with:
+
+- `username`
+- `hostname`
+
+`home.nix` reads these values, so each machine can keep local identity settings without using `--impure`.
+
+## Updates Agent Lifecycle
+
+The updates stage is declared in `stages/default.nix` and each stage exposes `install`, `uninstall`, and `status`.
+
+The weekly update agent is built as a reproducible Rust package and stored in the Nix Store as `.#updates-agent`.
+
+Install the system agent (root-owned, with systemd timer):
+
+```bash
+nix run .#updates-install
+```
+
+Check status:
+
+```bash
+nix run .#updates-status
+```
+
+Uninstall cleanly (for rollbacks or reset):
+
+```bash
+nix run .#updates-uninstall
+```
+
+This install/uninstall model avoids unmanaged mutations and makes cleanup predictable.
+
 If you already have `home-manager` in your `PATH`, this remains equivalent:
 
 ```bash

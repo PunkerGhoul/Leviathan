@@ -1,3 +1,20 @@
 {
-    "chatgpt.commentCodeLensEnabled": false
+    "chatgpt.commentCodeLensEnabled": false,
+    "files.watcherExclude": {
+        "**/result": true,
+        "**/result/**": true,
+        "**/.direnv/**": true,
+        "**/node_modules/**": true
+    },
+    "search.exclude": {
+        "**/result": true,
+        "**/result/**": true,
+        "**/.direnv/**": true,
+        "**/node_modules/**": true
+    },
+    "files.exclude": {
+        "result": true,
+        "**/.direnv": true
+    },
+    "search.followSymlinks": false
 }

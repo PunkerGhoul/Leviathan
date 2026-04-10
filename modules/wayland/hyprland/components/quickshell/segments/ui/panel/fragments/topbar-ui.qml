@@ -351,9 +351,12 @@
                             }
 
                             StatusPill {
-                                text: updatesText.text
+                                text: "󰚰 " + (updatesText.text.length > 0 ? updatesText.text : "0")
                                 warning: true
-                                onClicked: updatesRunProc.running = true
+                                onClicked: {
+                                    updatesForceProc.running = true
+                                    updatesRunProc.running = true
+                                }
                             }
 
                             StatusPill {

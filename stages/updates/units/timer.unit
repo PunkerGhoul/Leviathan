@@ -1,0 +1,11 @@
+# ManagedBy=leviathan-updates-manager
+[Unit]
+Description=Run Leviathan auto-update every Sunday at 12:00
+
+[Timer]
+OnCalendar=Sun 12:00
+Persistent=true
+Unit=leviathan-auto-update-agent.service
+
+[Install]
+WantedBy=timers.target

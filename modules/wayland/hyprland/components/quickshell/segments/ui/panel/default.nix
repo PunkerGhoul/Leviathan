@@ -42,7 +42,7 @@ let
     hiddenTexts = [
       { id = "clockText"; visible = false; text = "--:-- --"; }
       { id = "clockDateText"; visible = false; text = "--/--/----"; }
-      { id = "updatesText"; visible = false; text = "󰚰 0"; }
+      { id = "updatesText"; visible = false; text = "0"; }
       { id = "networkText"; visible = false; text = "󰤯"; }
       { id = "bluetoothText"; visible = false; text = "󰂲"; }
       { id = "volumeText"; visible = false; text = "󰕾 0%"; }
@@ -74,7 +74,12 @@ let
         { id = "powerMenuProc"; command = [ "sh" "-lc" "leviathan-power-menu" ]; running = false; }
         { id = "volumeOpenProc"; command = [ "sh" "-lc" "setsid -f pavucontrol >/dev/null 2>&1" ]; running = false; }
         { id = "workspaceSwitchProc"; command = [ "sh" "-lc" "true" ]; running = false; }
-        { id = "updatesRunProc"; command = [ "sh" "-lc" "leviathan-run-updates" ]; running = false; }
+        {
+          id = "updatesRunProc";
+          command = [ "sh" "-lc" ''if command -v hyprctl >/dev/null 2>&1; then ws="$(hyprctl activeworkspace 2>/dev/null | awk '/workspace ID/ { print $3; exit }')"; if [ -n "$ws" ]; then hyprctl dispatch exec "[workspace $ws] leviathan-run-updates" >/dev/null 2>&1 && exit 0; fi; fi; leviathan-run-updates'' ];
+          running = false;
+          stdoutOnStreamFinished = "updatesRunResultProc.running = true";
+        }
       ];
 
       status = [
@@ -109,6 +114,34 @@ let
           command = [ "sh" "-lc" "leviathan-updates" ];
           running = true;
           stdoutOnStreamFinished = "updatesText.text = this.text.trim()";
+        }
+        {
+          id = "updatesForceProc";
+          command = [ "sh" "-lc" "leviathan-updates --force" ];
+          running = false;
+          stdoutOnStreamFinished = "updatesText.text = this.text.trim()";
+        }
+        {
+          id = "updatesRunResultProc";
+          command = [ "sh" "-lc" "leviathan-updates-run-result" ];
+          running = false;
+          stdoutOnStreamFinished = ''{
+                const result = this.text.trim();
+                if (result === "changed") {
+                  updatesForceProc.running = true;
+                }
+              }'';
+        }
+        {
+          id = "updatesStartupProc";
+          command = [ "sh" "-lc" "leviathan-updates-startup" ];
+          running = true;
+          stdoutOnStreamFinished = ''{
+                const value = this.text.trim();
+                if (value.length > 0) {
+                  updatesText.text = value;
+                }
+                    }'';
         }
         {
           id = "networkProc";
@@ -249,11 +282,10 @@ let
                 }'';
       }
       {
-        interval = 10000;
+        interval = 30000;
         repeat = true;
         runningExpr = "true";
         onTriggered = ''{
-                    updatesProc.running = true
                     networkProc.running = true
                     vpnProc.running = true
                     bluetoothProc.running = true
@@ -261,7 +293,7 @@ let
                 }'';
       }
       {
-        interval = 60000;
+        interval = 300000;
         repeat = true;
         runningExpr = "true";
         onTriggered = ''{
@@ -276,13 +308,13 @@ let
         onTriggered = "calendarMonthProc.running = true";
       }
       {
-        interval = 4000;
+        interval = 8000;
         repeat = true;
         runningExpr = "panel.networkPopupOpen";
         onTriggered = "panel.refreshNetworkPopup()";
       }
       {
-        interval = 5000;
+        interval = 15000;
         repeat = true;
         runningExpr = "panel.networkPopupOpen";
         onTriggered = "panel.requestNetworkCacheScan(false)";

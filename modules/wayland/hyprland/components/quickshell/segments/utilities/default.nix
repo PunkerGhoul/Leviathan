@@ -5,7 +5,7 @@ let
   volume = import ./volume { inherit pkgs; };
   volumeEvent = import ./volume/event.nix { inherit pkgs; };
   calendarMonth = import ./calendar-month.nix { inherit pkgs; };
-  updates = import ./updates.nix { inherit pkgs; };
+  updates = import ./updates { inherit pkgs; };
   network = import ./network { inherit pkgs; };
 
   powerIconScript = pkgs.writeShellScriptBin "leviathan-power-icon" ''
@@ -21,6 +21,8 @@ in
     calendarMonth
     updates.updatesScript
     updates.runUpdatesScript
+    updates.updatesRunResultScript
+    updates.updatesStartupScript
     network.vpnStatusScript
     network.networkConnectUiScript
     network.networkForgetUiScript

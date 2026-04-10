@@ -1,10 +1,24 @@
 { pkgs, nixgl, lib, ... }:
+let
+  localConfigPath = ./. + "/local/default.nix";
+  localConfig =
+    if builtins.pathExists localConfigPath then
+      import localConfigPath
+    else
+      {
+        username = "ghoul";
+        hostname = "leviathan";
+      };
 
+  username = localConfig.username;
+  hostname = localConfig.hostname;
+in
 {
   home.stateVersion = "25.11";
 
-  home.username = "ghoul";
-  home.homeDirectory = "/home/ghoul";
+  home.username = username;
+  home.homeDirectory = "/home/${username}";
+  home.sessionVariables.LEVIATHAN_HOSTNAME = hostname;
 
   targets.genericLinux.nixGL = {
     packages = nixgl.packages;
@@ -29,7 +43,7 @@
           $DRY_RUN_CMD /usr/bin/sudo /bin/sh -c \
             "${pkgs.coreutils}/bin/printf '%s\n' '$target_shell' >> /etc/shells"
         fi
-        $DRY_RUN_CMD /usr/bin/sudo chsh -s "$target_shell" "$USER"
+        $DRY_RUN_CMD /usr/bin/sudo /usr/bin/chsh -s "$target_shell" "$USER"
       else
         echo "sudo is required to set zsh as the default shell for $USER" >&2
         exit 1

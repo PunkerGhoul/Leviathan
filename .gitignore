@@ -1,0 +1,8 @@
+local/
+result
+**/result
+stages/**/target/
+.direnv/
+**/.direnv/
+.envrc
+*.log

@@ -1,0 +1,22 @@
+# ManagedBy=leviathan-updates-manager
+[Unit]
+Description=Leviathan automatic system update agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=__BIN_LINK__ --cache-file __CACHE_DIR__/updates-count.txt
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=no
+ProtectHome=no
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+MemoryDenyWriteExecute=true
+RestrictRealtime=true
+RestrictNamespaces=true
+LogsDirectory=leviathan
+ReadWritePaths=__CACHE_DIR__
+UMask=0027
