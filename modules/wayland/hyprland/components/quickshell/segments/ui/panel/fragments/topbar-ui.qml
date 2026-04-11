@@ -383,7 +383,18 @@
                             }
 
                             StatusPill {
+                                id: batteryStatusButton
                                 text: batteryText.text
+                                onClicked: {
+                                    panel.batteryPopupOpen = !panel.batteryPopupOpen
+                                    if (panel.batteryPopupOpen) {
+                                        panel.refreshBatteryThresholds()
+                                        panel.refreshBatteryPopup()
+                                        panel.positionPopupUnderBatteryButton()
+                                    } else {
+                                        panel.stopBatteryRealtime()
+                                    }
+                                }
                             }
 
                             Rectangle {

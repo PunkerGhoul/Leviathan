@@ -3,6 +3,7 @@ let
   layoutBlocks = import ../segments/ui/layout;
   panelBlocks = import ../segments/ui/panel;
   networkBlocks = import ../segments/utilities/network { inherit pkgs; };
+  batteryBlocks = import ../segments/utilities/battery.nix { inherit pkgs; };
 
   joinQml = parts: lib.concatStringsSep "\n" (builtins.filter (part: part != "") parts);
 
@@ -428,16 +429,18 @@ ${if stdoutOnStreamFinished != null then ''
       "import Quickshell"
       "import Quickshell.Io"
       "import Quickshell.Hyprland"
-    ] ++ networkBlocks.qml.imports;
+    ] ++ networkBlocks.qml.imports ++ batteryBlocks.qml.imports;
 
     properties = [
       layoutBlocks.qml.properties
       networkBlocks.qml.properties
+      batteryBlocks.qml.properties
     ];
 
     functions = [
       layoutBlocks.qml.functions
       networkBlocks.qml.functions
+      batteryBlocks.qml.functions
     ];
   };
 
@@ -474,6 +477,7 @@ ${if stdoutOnStreamFinished != null then ''
       "// @PANEL_DEVICE_PROCESSES@"
       "// @PANEL_TIMERS@"
       "// @NETWORK_POPUP_UI@"
+      "// @BATTERY_POPUP_UI@"
       "// @SHELLROOT_CLOSE@"
     ]
     [
@@ -484,13 +488,14 @@ ${if stdoutOnStreamFinished != null then ''
       (renderComponentsSlot panelBlocks.qml.components)
       (renderBlockSlot panelBlocks.qml.topbarUi)
       (renderProcessesSlot panelBlocks.qml.processes.action)
-      (renderProcessesSlot networkBlocks.qml.processes)
+      (renderProcessesSlot (networkBlocks.qml.processes ++ batteryBlocks.qml.processes))
       (renderTextsSlot panelBlocks.qml.hiddenTexts)
       (renderProcessesSlot panelBlocks.qml.processes.status)
       (renderProcessesSlot panelBlocks.qml.processes.networkSlots)
       (renderProcessesSlot panelBlocks.qml.processes.device)
       (renderTimersSlot panelBlocks.qml.timers)
       (renderBlockSlot panelBlocks.qml.networkPopup)
+      (renderBlockSlot panelBlocks.qml.batteryPopup)
       shellRootCloseQml
     ]
     shellRootTemplate;

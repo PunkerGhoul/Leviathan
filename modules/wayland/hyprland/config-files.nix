@@ -26,6 +26,7 @@ in
     "hypr/hypridle.conf".source = ./config/hypridle.conf;
     "hypr/hyprlock.conf".source = ./config/hyprlock.conf;
     "hypr/hyprshot.conf".source = ./config/hyprshot.conf;
+    "hypr/polkit-agent.qss".source = ./config/polkit-agent.qss;
 
     # Temas
     "hypr/themes" = {

@@ -24,4 +24,5 @@
             // @PANEL_TIMERS@
 
             // @NETWORK_POPUP_UI@
+            // @BATTERY_POPUP_UI@
 // @SHELLROOT_CLOSE@

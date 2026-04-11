@@ -53,6 +53,19 @@ let
       { id = "calendarText"; visible = false; text = ""; }
       { id = "networkConnectedText"; visible = false; text = "Disconnected"; }
       { id = "networkSpeedText"; visible = false; text = "No traffic"; }
+      { id = "batteryStatusText"; visible = false; text = "Unknown"; }
+      { id = "batteryProfileText"; visible = false; text = "N/A"; }
+      { id = "batteryVoltageText"; visible = false; text = "N/A"; }
+      { id = "batteryCyclesText"; visible = false; text = "N/A"; }
+      { id = "batteryRateText"; visible = false; text = "N/A"; }
+      { id = "batteryTimeRemainingText"; visible = false; text = "N/A"; }
+      { id = "batteryAcStateText"; visible = false; text = "Unknown"; }
+      { id = "batteryCpuTempText"; visible = false; text = "N/A"; }
+      { id = "batteryGpuTempText"; visible = false; text = "N/A"; }
+      { id = "batteryThermalStateText"; visible = false; text = "Unknown"; }
+      { id = "batteryAutoTargetText"; visible = false; text = "N/A"; }
+      { id = "batteryAutoSourceText"; visible = false; text = "N/A"; }
+      { id = "batteryBackendText"; visible = false; text = ""; }
     ];
 
     processes = {
@@ -234,6 +247,88 @@ let
                         }
                     }'';
         }
+                {
+                  id = "batteryDetailsProc";
+                  command = [ "sh" "-lc" "leviathan-battery-info" ];
+                  running = true;
+                  stdoutOnStreamFinished = ''{
+                        const raw = this.text.trim();
+                        const lines = raw.length > 0 ? raw.split("\n") : [];
+                        const data = ({})
+
+                        for (const line of lines) {
+                          const idx = line.indexOf("=");
+                          if (idx <= 0) {
+                            continue;
+                          }
+
+                          const key = line.slice(0, idx).trim();
+                          const value = line.slice(idx + 1).trim();
+                          if (key.length > 0) {
+                            data[key] = value;
+                          }
+                        }
+
+                        batteryStatusText.text = data.STATUS || "Unknown";
+                        batteryProfileText.text = data.PROFILE || "N/A";
+                        batteryVoltageText.text = data.VOLTAGE || "N/A";
+                        batteryCyclesText.text = data.CYCLES || "N/A";
+                        batteryRateText.text = data.RATE || "N/A";
+                        batteryTimeRemainingText.text = data.TIME_REMAINING || "N/A";
+                        batteryAcStateText.text = data.AC_STATE || "Unknown";
+                        batteryCpuTempText.text = data.CPU_TEMP || "N/A";
+                        batteryGpuTempText.text = data.GPU_TEMP || "N/A";
+                        batteryThermalStateText.text = data.THERMAL_STATE || "Unknown";
+                        batteryAutoTargetText.text = data.AUTO_TARGET || "N/A";
+                        batteryAutoSourceText.text = data.AUTO_SOURCE || "N/A";
+                        batteryBackendText.text = data.BACKEND || "";
+
+                        const startThreshold = parseInt(data.START_THRESHOLD || "-1", 10);
+                        const stopThreshold = parseInt(data.STOP_THRESHOLD || "-1", 10);
+
+                        if (!Number.isNaN(startThreshold) && startThreshold >= 0 && startThreshold <= 100) {
+                          panel.batteryStartThresholdValue = startThreshold;
+                        }
+
+                        if (!Number.isNaN(stopThreshold) && stopThreshold >= 0 && stopThreshold <= 100) {
+                          panel.batteryStopThresholdValue = stopThreshold;
+                        }
+                      }'';
+                }
+                {
+                  id = "batteryThresholdsProc";
+                  command = [ "sh" "-lc" "leviathan-battery-thresholds-info" ];
+                  running = true;
+                  stdoutOnStreamFinished = ''{
+                        const raw = this.text.trim();
+                        const lines = raw.length > 0 ? raw.split("\n") : [];
+                        const data = ({});
+
+                        for (const line of lines) {
+                          const idx = line.indexOf("=");
+                          if (idx <= 0) {
+                            continue;
+                          }
+
+                          const key = line.slice(0, idx).trim();
+                          const value = line.slice(idx + 1).trim();
+                          if (key.length > 0) {
+                            data[key] = value;
+                          }
+                        }
+
+                        const startThreshold = parseInt(data.START_THRESHOLD || "-1", 10);
+                        const stopThreshold = parseInt(data.STOP_THRESHOLD || "-1", 10);
+
+                        if (!Number.isNaN(startThreshold) && startThreshold >= 0 && startThreshold <= 100) {
+                          panel.batteryStartThresholdValue = startThreshold;
+                        }
+
+                        if (!Number.isNaN(stopThreshold) && stopThreshold >= 0 && stopThreshold <= 100) {
+                          panel.batteryStopThresholdValue = stopThreshold;
+                        }
+                      }'';
+                }
       ];
 
       networkSlots = [ ];
@@ -319,10 +414,26 @@ let
         runningExpr = "panel.networkPopupOpen";
         onTriggered = "panel.requestNetworkCacheScan(false)";
       }
+      {
+        interval = 10000;
+        repeat = true;
+        runningExpr = "panel.batteryPopupOpen";
+        onTriggered = "panel.refreshBatteryPopup()";
+      }
+      {
+        interval = 15000;
+        repeat = true;
+        runningExpr = "batteryProfileText.text === \"auto\"";
+        onTriggered = "panel.evaluateAutoProfile()";
+      }
     ];
 
     networkPopup = {
       text = builtins.readFile ./fragments/network-popup.qml;
+    };
+
+    batteryPopup = {
+      text = builtins.readFile ./fragments/battery-popup.qml;
     };
   };
 in

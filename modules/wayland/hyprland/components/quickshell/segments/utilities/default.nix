@@ -14,7 +14,7 @@ let
 in
 {
   scripts = [
-    battery
+  ] ++ battery.scripts ++ [
     bluetooth
     volume
     volumeEvent

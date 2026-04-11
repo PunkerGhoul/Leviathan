@@ -1,0 +1,120 @@
+diff --git a/qml/main.qml b/qml/main.qml
+index 0944679..b5f0e6c 100644
+--- a/qml/main.qml
++++ b/qml/main.qml
+@@ -5,10 +5,13 @@ ApplicationWindow {
+     id: window
+ 
+-    property var windowWidth: Math.round(fontMetrics.height * 32.2856)
+-    property var windowHeight: Math.round(fontMetrics.height * 13.9528)
++    property var windowWidth: Math.round(fontMetrics.height * 28.0)
++    property var windowHeight: Math.round(fontMetrics.height * 11.8)
+     property var heightSafeMargin: 15
+ 
++    color: "#1f2432"
++    title: "Authentication Required"
++
+     minimumWidth: Math.max(windowWidth, mainLayout.Layout.minimumWidth) + mainLayout.anchors.margins * 2
+     minimumHeight: Math.max(windowHeight, mainLayout.Layout.minimumHeight) + mainLayout.anchors.margins * 2 + heightSafeMargin
+     maximumWidth: minimumWidth
+@@ -36,7 +39,7 @@ ApplicationWindow {
+             anchors.margins: 4
+ 
+             Label {
+-                color: Qt.darker(system.windowText, 0.8)
++                color: "#e9eeff"
+                 font.bold: true
+                 font.pointSize: Math.round(fontMetrics.height * 1.05)
+                 text: "Authenticating for " + hpa.getUser()
+@@ -51,7 +54,7 @@ ApplicationWindow {
+             }
+ 
+             Label {
+-                color: system.windowText
++                color: "#cfd7f3"
+                 text: hpa.getMessage()
+                 Layout.maximumWidth: parent.width
+                 elide: Text.ElideRight
+@@ -68,6 +71,18 @@ ApplicationWindow {
+                 persistentSelection: true
+                 echoMode: TextInput.Password
+                 focus: true
++                color: "#f1f5ff"
++                selectionColor: "#9b74ff"
++                selectedTextColor: "#ffffff"
++                background: Rectangle {
++                    implicitWidth: Math.round(fontMetrics.height * 14)
++                    implicitHeight: Math.round(fontMetrics.height * 2.1)
++                    radius: 8
++                    color: "#2b3246"
++                    border.width: 1
++                    border.color: "#8f70df"
++                }
+ 
+                 Connections {
+                     target: hpa
+@@ -91,7 +106,7 @@ ApplicationWindow {
+             Label {
+                 id: errorLabel
+ 
+-                color: "red"
++                color: "#ff9db2"
+                 font.italic: true
+                 Layout.topMargin: 0
+                 text: ""
+@@ -114,17 +129,45 @@ ApplicationWindow {
+             RowLayout {
+                 Layout.alignment: Qt.AlignRight
+                 Layout.rightMargin: fontMetrics.height / 2
+ 
+                 Button {
+                     text: "Cancel"
++                    background: Rectangle {
++                        implicitWidth: Math.round(fontMetrics.height * 7)
++                        implicitHeight: Math.round(fontMetrics.height * 2.1)
++                        radius: 8
++                        color: "#3a2f56"
++                        border.width: 1
++                        border.color: "#8f70df"
++                    }
++                    contentItem: Text {
++                        text: parent.text
++                        color: "#f2f5ff"
++                        horizontalAlignment: Text.AlignHCenter
++                        verticalAlignment: Text.AlignVCenter
++                        font.pointSize: Math.round(fontMetrics.height * 0.66)
++                    }
+                     onClicked: (e) => {
+                         hpa.setResult("fail");
+                     }
+                 }
+ 
+                 Button {
+                     text: "Authenticate"
++                    background: Rectangle {
++                        implicitWidth: Math.round(fontMetrics.height * 8.5)
++                        implicitHeight: Math.round(fontMetrics.height * 2.1)
++                        radius: 8
++                        color: "#4a3a71"
++                        border.width: 1
++                        border.color: "#a884ff"
++                    }
++                    contentItem: Text {
++                        text: parent.text
++                        color: "#f2f5ff"
++                        horizontalAlignment: Text.AlignHCenter
++                        verticalAlignment: Text.AlignVCenter
++                        font.pointSize: Math.round(fontMetrics.height * 0.66)
++                    }
+                     onClicked: (e) => {
+                         hpa.setResult("auth:" + passwordField.text);
+                     }
+                 }
+@@ -136,7 +179,7 @@ ApplicationWindow {
+ 
+     component Separator: Rectangle {
+-        color: Qt.darker(window.palette.text, 1.5)
++        color: "#7c5ec8"
+     }
+ 
+     component HSeparator: Separator {
