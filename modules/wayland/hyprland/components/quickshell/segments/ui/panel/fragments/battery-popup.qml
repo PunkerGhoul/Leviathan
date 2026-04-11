@@ -39,12 +39,22 @@
                         border.color: "#6f7899"
                         color: "#262d3c"
 
-                        ColumnLayout {
-                            id: batteryPopupColumn
+                        Flickable {
+                            id: batteryPopupScroll
                             anchors.fill: parent
-                            anchors.margins: 12
-                            spacing: 8
-                            onImplicitHeightChanged: panel.fitBatteryPopupHeightToContent(implicitHeight + 24)
+                            clip: true
+                            contentWidth: width
+                            contentHeight: batteryPopupColumn.implicitHeight + 24
+                            boundsBehavior: Flickable.StopAtBounds
+                            interactive: contentHeight > height
+
+                            ColumnLayout {
+                                id: batteryPopupColumn
+                                x: 12
+                                y: 12
+                                width: Math.max(0, batteryPopupScroll.width - 24)
+                                spacing: 8
+                                onImplicitHeightChanged: panel.fitBatteryPopupHeightToContent(implicitHeight + 24)
 
                             RowLayout {
                                 Layout.fillWidth: true
@@ -71,7 +81,7 @@
                                 border.width: 1
                                 border.color: "#59617e"
                                 color: "#323a4f"
-                                implicitHeight: 204
+                                implicitHeight: 238 + thermalTableRow.height + 6
 
                                 Column {
                                     anchors.fill: parent
@@ -316,6 +326,183 @@
                                                     color: batteryThermalStateText.text === "Hot" || batteryThermalStateText.text === "Critical" ? "#ffbe9b" : "#eef3ff"
                                                     font.pixelSize: 10
                                                     font.family: "Maple Mono NF"
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    Rectangle {
+                                        id: batteryFansRow
+                                        width: parent.width
+                                        height: Math.max(26, fanFlow.implicitHeight + 10)
+                                        radius: 6
+                                        color: "#2c3346"
+                                        property var fanEntries: {
+                                            if (batteryFansText.text.length === 0 || batteryFansText.text === "N/A") {
+                                                return [];
+                                            }
+                                            return batteryFansText.text.split(" | ");
+                                        }
+
+                                        Flow {
+                                            id: fanFlow
+                                            anchors.fill: parent
+                                            anchors.leftMargin: 8
+                                            anchors.rightMargin: 8
+                                            anchors.topMargin: 5
+                                            anchors.bottomMargin: 5
+                                            spacing: 10
+
+                                            Text {
+                                                text: "Fans"
+                                                color: "#9fb1de"
+                                                font.pixelSize: 10
+                                                font.family: "Maple Mono NF"
+                                            }
+
+                                            Repeater {
+                                                model: batteryFansRow.fanEntries
+                                                delegate: Row {
+                                                    spacing: 4
+
+                                                    Text {
+                                                        id: fanIcon
+                                                        text: "󰈐"
+                                                        color: "#b9c3de"
+                                                        font.pixelSize: 11
+                                                        font.family: "Maple Mono NF"
+                                                        property int rpmValue: {
+                                                            const match = modelData.match(/-\s*(\d+)/);
+                                                            return match ? parseInt(match[1], 10) : 1400;
+                                                        }
+
+                                                        NumberAnimation on rotation {
+                                                            from: 0
+                                                            to: 360
+                                                            duration: Math.max(350, 2200 - Math.min(1700, fanIcon.rpmValue * 0.2))
+                                                            loops: Animation.Infinite
+                                                            running: panel.batteryPopupOpen
+                                                        }
+                                                    }
+
+                                                    Text {
+                                                        text: modelData
+                                                        color: "#eef3ff"
+                                                        font.pixelSize: 10
+                                                        font.family: "Maple Mono NF"
+                                                    }
+                                                }
+                                            }
+
+                                            Text {
+                                                visible: batteryFansRow.fanEntries.length === 0
+                                                text: "N/A"
+                                                color: "#eef3ff"
+                                                font.pixelSize: 10
+                                                font.family: "Maple Mono NF"
+                                            }
+                                        }
+                                    }
+
+                                    Rectangle {
+                                        id: thermalTableRow
+                                        width: parent.width
+                                        radius: 6
+                                        color: "#2c3346"
+                                        property var thermalEntries: {
+                                            if (batteryThermalZonesText.text.length === 0 || batteryThermalZonesText.text === "N/A") {
+                                                return [];
+                                            }
+                                            return batteryThermalZonesText.text.split(" | ");
+                                        }
+                                        property int thermalColumns: 3
+                                        property int thermalRows: Math.ceil(thermalEntries.length / thermalColumns)
+                                        property real tileHeight: 26
+                                        function parseTemp(entry) {
+                                            const match = entry.match(/([0-9]+(?:\.[0-9]+)?)\s*°C/);
+                                            return match ? parseFloat(match[1]) : NaN;
+                                        }
+                                        function colorForTemp(tempC) {
+                                            if (Number.isNaN(tempC)) {
+                                                return "#9fb1de";
+                                            }
+                                            if (tempC >= 85) {
+                                                return "#ff6b6b";
+                                            }
+                                            if (tempC >= 70) {
+                                                return "#ff9f40";
+                                            }
+                                            if (tempC >= 50) {
+                                                return "#ffd166";
+                                            }
+                                            return "#6ec6ff";
+                                        }
+                                        height: thermalBody.implicitHeight + 12
+
+                                        Column {
+                                            id: thermalBody
+                                            anchors.fill: parent
+                                            anchors.leftMargin: 8
+                                            anchors.rightMargin: 8
+                                            anchors.topMargin: 6
+                                            anchors.bottomMargin: 6
+                                            spacing: 6
+
+                                            Text {
+                                                text: "Thermal: " + batteryThermalStateText.text
+                                                color: batteryThermalStateText.text === "Critical"
+                                                    ? "#ff6b6b"
+                                                    : (batteryThermalStateText.text === "Hot"
+                                                        ? "#ff9f40"
+                                                        : (batteryThermalStateText.text === "Warm" ? "#ffd166" : "#9fb1de"))
+                                                font.pixelSize: 10
+                                                font.family: "Maple Mono NF"
+                                            }
+
+                                            Grid {
+                                                id: thermalGrid
+                                                width: parent.width
+                                                columns: thermalTableRow.thermalColumns
+                                                columnSpacing: 8
+                                                rowSpacing: 6
+                                                visible: thermalTableRow.thermalEntries.length > 0
+
+                                                Repeater {
+                                                    model: thermalTableRow.thermalEntries
+                                                    delegate: Rectangle {
+                                                        width: (thermalGrid.width - (thermalGrid.columnSpacing * (thermalGrid.columns - 1))) / thermalGrid.columns
+                                                        height: thermalTableRow.tileHeight
+                                                        radius: 5
+                                                        color: "#39435a"
+
+                                                        Row {
+                                                            anchors.fill: parent
+                                                            anchors.leftMargin: 6
+                                                            anchors.rightMargin: 6
+                                                            spacing: 4
+
+                                                            Text {
+                                                                anchors.verticalCenter: parent.verticalCenter
+                                                                text: "󰔏"
+                                                                color: thermalTableRow.colorForTemp(thermalTableRow.parseTemp(modelData))
+                                                                font.pixelSize: 11
+                                                                font.family: "Maple Mono NF"
+                                                            }
+
+                                                            Text {
+                                                                anchors.verticalCenter: parent.verticalCenter
+                                                                text: modelData
+                                                                color: "#eef3ff"
+                                                                font.pixelSize: 9
+                                                                font.family: "Maple Mono NF"
+                                                                horizontalAlignment: Text.AlignLeft
+                                                                verticalAlignment: Text.AlignVCenter
+                                                                wrapMode: Text.NoWrap
+                                                                elide: Text.ElideRight
+                                                                width: parent.width - 24
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
@@ -1034,6 +1221,7 @@
                                     width: parent.width - 16
                                     horizontalAlignment: Text.AlignHCenter
                                 }
+                            }
                             }
                         }
                     }

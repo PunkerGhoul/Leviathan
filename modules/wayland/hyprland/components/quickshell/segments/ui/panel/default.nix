@@ -62,6 +62,8 @@ let
       { id = "batteryAcStateText"; visible = false; text = "Unknown"; }
       { id = "batteryCpuTempText"; visible = false; text = "N/A"; }
       { id = "batteryGpuTempText"; visible = false; text = "N/A"; }
+      { id = "batteryFansText"; visible = false; text = "N/A"; }
+      { id = "batteryThermalZonesText"; visible = false; text = "N/A"; }
       { id = "batteryThermalStateText"; visible = false; text = "Unknown"; }
       { id = "batteryAutoTargetText"; visible = false; text = "N/A"; }
       { id = "batteryAutoSourceText"; visible = false; text = "N/A"; }
@@ -249,7 +251,7 @@ let
         }
                 {
                   id = "batteryDetailsProc";
-                  command = [ "sh" "-lc" "leviathan-battery-info" ];
+                  command = [ "sh" "-lc" "LEVIATHAN_BATTERY_BYPASS_SNAPSHOT=1 leviathan-battery-info" ];
                   running = true;
                   stdoutOnStreamFinished = ''{
                         const raw = this.text.trim();
@@ -278,6 +280,8 @@ let
                         batteryAcStateText.text = data.AC_STATE || "Unknown";
                         batteryCpuTempText.text = data.CPU_TEMP || "N/A";
                         batteryGpuTempText.text = data.GPU_TEMP || "N/A";
+                        batteryFansText.text = data.FANS || "N/A";
+                        batteryThermalZonesText.text = data.THERMAL_ZONES || "N/A";
                         batteryThermalStateText.text = data.THERMAL_STATE || "Unknown";
                         batteryAutoTargetText.text = data.AUTO_TARGET || "N/A";
                         batteryAutoSourceText.text = data.AUTO_SOURCE || "N/A";
@@ -357,8 +361,53 @@ let
           command = [ "sh" "-lc" "leviathan-battery" ];
           running = true;
           stdoutOnStreamFinished = ''{
-                        const value = this.text.trim();
-                        batteryText.text = value.length > 0 ? value : "󰁹 100%";
+                        const raw = this.text.trim();
+                        const lines = raw.length > 0 ? raw.split("\n") : [];
+                        const data = ({})
+
+                        for (const line of lines) {
+                          const idx = line.indexOf("=");
+                          if (idx <= 0) {
+                            continue;
+                          }
+
+                          const key = line.slice(0, idx).trim();
+                          const value = line.slice(idx + 1).trim();
+                          if (key.length > 0) {
+                            data[key] = value;
+                          }
+                        }
+
+                        const status = data.STATUS || "Unknown";
+                        const capacity = parseInt(data.CAPACITY || "0", 10);
+                        const clampedCapacity = Number.isNaN(capacity) ? 0 : Math.max(0, Math.min(100, capacity));
+
+                        let icon = "󰂃";
+                        if (status === "Charging") {
+                          icon = "󰂄";
+                        } else if (clampedCapacity >= 95) {
+                          icon = "󰁹";
+                        } else if (clampedCapacity >= 90) {
+                          icon = "󰂂";
+                        } else if (clampedCapacity >= 80) {
+                          icon = "󰂁";
+                        } else if (clampedCapacity >= 70) {
+                          icon = "󰂀";
+                        } else if (clampedCapacity >= 60) {
+                          icon = "󰁿";
+                        } else if (clampedCapacity >= 50) {
+                          icon = "󰁾";
+                        } else if (clampedCapacity >= 40) {
+                          icon = "󰁽";
+                        } else if (clampedCapacity >= 30) {
+                          icon = "󰁼";
+                        } else if (clampedCapacity >= 20) {
+                          icon = "󰁻";
+                        } else if (clampedCapacity >= 10) {
+                          icon = "󰁺";
+                        }
+
+                        batteryText.text = icon + " " + clampedCapacity + "%";
                     }'';
         }
       ];

@@ -1,6 +1,6 @@
-{ pkgs }:
+{ pkgs, lib ? pkgs.lib }:
 let
-  battery = import ./battery.nix { inherit pkgs; };
+  battery = import ./battery { inherit pkgs lib; };
   bluetooth = import ./bluetooth.nix { inherit pkgs; };
   volume = import ./volume { inherit pkgs; };
   volumeEvent = import ./volume/event.nix { inherit pkgs; };

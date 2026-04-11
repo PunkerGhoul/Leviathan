@@ -3,7 +3,7 @@ let
   layoutBlocks = import ../segments/ui/layout;
   panelBlocks = import ../segments/ui/panel;
   networkBlocks = import ../segments/utilities/network { inherit pkgs; };
-  batteryBlocks = import ../segments/utilities/battery.nix { inherit pkgs; };
+  batteryBlocks = import ../segments/utilities/battery { inherit pkgs; };
 
   joinQml = parts: lib.concatStringsSep "\n" (builtins.filter (part: part != "") parts);
 
